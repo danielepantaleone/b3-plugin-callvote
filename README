@@ -11,7 +11,7 @@ Since there is a bit of delay between a /callvote command being issued on the se
 we probably are not able to control everything.
 As an example think about this situation:
 
-	Bob  - Team Red
+    Bob  - Team Red
     Tom  - Team Spectator
     Lisa - Team Spectator
  
@@ -20,7 +20,7 @@ If Bob issue a /callvote command, the votation will end as soon as the countdown
 
 At the current state what we can do is:
     
-	- check how many players are able to issue a /vote command
+    - check how many players are able to issue a /vote command
     - if more than 1, perform all the controls we need, otherwise handle directly the end of the current votation, in order to avoid problems (timing related)
 
 
