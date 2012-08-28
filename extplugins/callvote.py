@@ -17,7 +17,7 @@
 #
 # CHANGELOG
 #
-# 27/08/2012 (v1.0 Mr.Click)
+# 28/08/2012 (v1.0 Mr.Click)
 #  - initial version
 
 __author__ = 'Mr.Click - http://www.goreclan.net'
