@@ -1,0 +1,12 @@
+<configuration plugin="callvote">
+	<settings name="minlevels">
+        <set name='kick'>20</set>				
+        <set name='map'>20</set>	
+        <set name='nextmap'>20</set>
+        <set name='cyclemap'>20</set>
+	</settings>
+	<settings name="commands">
+        <set name='lastvote'>20</set>
+        <set name='veto-paveto'>20</set>
+	</settings>	
+</configuration>

@@ -1,0 +1,42 @@
+Callvote plugin for BigBrotherBot (www.bigbrotherbot.net)
+=============================================================
+
+By Mr.Click
+
+
+Description
+-----------
+This plugin is able to handle Client Callvote and Client Vote events provided by the new iourt42 parser.
+Since there is a bit of delay between a /callvote command being issued on the servervand the b3 generating the corresponding event, 
+we probably are not able to control everything.
+As an example think about this situation:
+
+	Bob  - Team Red
+    Tom  - Team Spectator
+    Lisa - Team Spectator
+ 
+If Bob issue a /callvote command, the votation will end as soon as the countdown starts since he's the only one able to do /vote 
+(spectators are excluded by the server engine and the player who issued the votation automatically voted F1 - go figure).
+
+At the current state what we can do is:
+    
+	- check how many players are able to issue a /vote command
+    - if more than 1, perform all the controls we need, otherwise handle directly the end of the current votation, in order to avoid problems (timing related)
+
+
+Installation
+------------
+
+ * copy callvote.py into b3/extplugins
+ * copy callvote.xml into b3/extplugins/conf
+ * create necessary table by importing callvote.sql into your MySQL database
+ * edit your b3.xml config file adding :
+ 
+<plugin name="callvote" config="@b3/extplugins/conf/callvote.xml"/>
+
+
+Changelog
+---------
+
+28/02/2012 (v1.0 Mr.Click)
+ * Initial version
