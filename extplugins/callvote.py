@@ -334,7 +334,7 @@ class CallvotePlugin(b3.plugin.Plugin):
                 
             except KeyError, e:
                 # This type of vote is not handled by the plugin yet. Simply do nothing.
-                self.debug('Intercepted unhandled type of callvote command: /callvote %s. Discaring.' % event.data['vote_string'])
+                self.debug('Intercepted unhandled type of callvote command: /callvote %s. Discarding.' % event.data['vote_string'])
                 self.reset()
                 return False
            
