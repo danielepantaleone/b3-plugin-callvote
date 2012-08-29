@@ -1,12 +1,24 @@
 <configuration plugin="callvote">
-	<settings name="minlevels">
-        <set name='kick'>20</set>				
-        <set name='map'>20</set>	
-        <set name='nextmap'>20</set>
-        <set name='cyclemap'>20</set>
+	<settings name="callvoteMinLevel">
+        <set name='kick'>20</set>				<!-- Min level to issue "/callvote kick <player>" command. 0 = everyone -->	
+        <set name='map'>20</set>				<!-- Min level to issue "/callvote map <mapname>" command. 0 = everyone -->	
+        <set name='nextmap'>20</set>			<!-- Min level to issue "/callvote nextmap <mapname>" command. 0 = everyone -->	
+        <set name='cyclemap'>20</set>			<!-- Min level to issue "/callvote cyclemap" command. 0 = everyone -->	
+        <set name='reload'>20</set>				<!-- Min level to issue "/callvote reload" command. 0 = everyone -->	
+        <set name='restart'>20</set>			<!-- Min level to issue "/callvote restart" command. 0 = everyone -->	
+        <set name='shuffleteams'>20</set>		<!-- Min level to issue "/callvote shuffleteams" command. 0 = everyone -->	
+	</settings>
+	<settings name='callvoteWaitTime'>
+		<set name='kick'>60</set>				<!-- Seconds between each "/callvote kick <player>" command. 0 = disable function -->
+		<set name='map'>60</set>				<!-- Seconds between each "/callvote map <mapname>" command. 0 = disable function -->
+		<set name='nextmap'>60</set>			<!-- Seconds between each "/callvote nextmap <mapname>" command. 0 = disable function -->
+		<set name='cyclemap'>60</set>			<!-- Seconds between each "/callvote cyclemap" command. 0 = disable function -->
+		<set name='reload'>60</set>				<!-- Seconds between each "/callvote reload" command. 0 = disable function -->
+		<set name='restart'>60</set>			<!-- Seconds between each "/callvote restart" command. 0 = disable function -->
+		<set name='shuffleteams'>60</set>		<!-- Seconds between each "/callvote shuffleteams" command. 0 = disable function -->
 	</settings>
 	<settings name="commands">
-        <set name='lastvote'>20</set>
-        <set name='veto-paveto'>20</set>
+        <set name='lastvote'>20</set>			<!-- Display informations related to the last votation -->
+        <set name='veto-paveto'>20</set>		<!-- Cancel the current votation -->
 	</settings>	
 </configuration>
