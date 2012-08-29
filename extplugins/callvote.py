@@ -70,7 +70,7 @@ class CallvotePlugin(b3.plugin.Plugin):
             try:
                 self._callvoteMinLevel[setting.get('name')] = int(setting.text)
                 self.debug('Callvote min level %s set to: %d.' % (setting.get('name'), self._callvoteMinLevel[setting.get('name')]))
-            except:
+            except Exception, e:
                 self.error('Error while reading min level %s config value: %s. Using default value: %d.' % (setting.get('name'), e, self._callvoteMinLevel[setting.get('name')]))
                 pass
             
@@ -79,7 +79,7 @@ class CallvotePlugin(b3.plugin.Plugin):
             try:
                 self._callvoteWaitTime[setting.get('name')] = int(setting.text)
                 self.debug('Callvote %s wait time set to: %d.' % (setting.get('name'), self._callvoteWaitTime[setting.get('name')]))
-            except:
+            except Exception, e:
                 self.error('Error while reading callvote %s wait time config value: %s. Using default value: %d.' % (setting.get('name'), e, self._callvoteWaitTime[setting.get('name')]))
                 pass    
             
