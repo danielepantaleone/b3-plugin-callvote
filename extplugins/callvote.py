@@ -326,6 +326,11 @@ class CallvotePlugin(b3.plugin.Plugin):
                             self.reset()
                             return False
                 
+                # Displaying the nextmap name if we are on a cyclemap votation
+                if self._callvote.data['type'] == 'cyclemap':
+                    mapname = self.console.getNextMap()
+                    if mapname: self.console.say('^7Next Map: ^2%s' % mapname)
+                
                 # If we got here means that the callvote is legit.
                 # We can now start a countdown like the one started by the Urban Terror server engine (more or less).
                 self.debug('Completed check on "/callvote %s" command. The callvote is legit. Starting the timer.' % event.data['vote_string'])
