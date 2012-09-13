@@ -26,14 +26,20 @@
 #  - added new debug log messages
 #  - added callvote spam protection
 #  - code cleanup
+#
+# 13/09/2012 (v1.1.1 Mr.Click)  
+#  - fixed xml configuration loading
+#  - fixed some typos
+#  - changed 'nextmap' to 'g_nextmap' as it's printed in the log file
+#  - plugin test
+#
 
 __author__ = 'Mr.Click - http://www.goreclan.net'
-__version__ = '1.1'
+__version__ = '1.1.1'
 
 import b3
 import b3.plugin
 import b3.events
-import string
 from threading import Timer
 
 
@@ -47,9 +53,9 @@ class CallvotePlugin(b3.plugin.Plugin):
     
     _adminPlugin = None
   
-    _callvoteMinLevel = { 'kick' : 20, 'map' : 20, 'nextmap' : 20, 'cyclemap' : 20, 'reload' : 20, 'restart' : 20, 'shuffleteams' : 20 }
-    _callvoteWaitTime = { 'kick' : 60, 'map' : 60, 'nextmap' : 60, 'cyclemap' : 60, 'reload' : 60, 'restart' : 60, 'shuffleteams' : 60 }
-    _lastCallvoteTime = { 'kick' :  0, 'map' :  0, 'nextmap' :  0, 'cyclemap' :  0, 'reload' :  0, 'restart' :  0, 'shuffleteams' :  0 }
+    _callvoteMinLevel = { 'kick' : 20, 'map' : 20, 'g_nextmap' : 20, 'cyclemap' : 20, 'reload' : 20, 'restart' : 20, 'shuffleteams' : 20 }
+    _callvoteWaitTime = { 'kick' : 60, 'map' : 60, 'g_nextmap' : 60, 'cyclemap' : 60, 'reload' : 60, 'restart' : 60, 'shuffleteams' : 60 }
+    _lastCallvoteTime = { 'kick' :  0, 'map' :  0, 'g_nextmap' :  0, 'cyclemap' :  0, 'reload' :  0, 'restart' :  0, 'shuffleteams' :  0 }
         
     _callvote = None
     _countdown = None
@@ -66,21 +72,21 @@ class CallvotePlugin(b3.plugin.Plugin):
         self.verbose('Loading config')
         
         # Loading callvote minimum required levels
-        for setting in self.config.get('callvoteMinLevel'):
+        for setting in self.config.options('callvoteMinLevel'):
             try:
-                self._callvoteMinLevel[setting.get('name')] = int(setting.text)
-                self.debug('Callvote min level %s set to: %d.' % (setting.get('name'), self._callvoteMinLevel[setting.get('name')]))
+                self._callvoteMinLevel[setting] = self.config.getint('callvoteMinLevel',setting)
+                self.debug('Callvote min level %s set to: %d.' % (setting, self._callvoteMinLevel[setting]))
             except Exception, e:
-                self.error('Error while reading min level %s config value: %s. Using default value: %d.' % (setting.get('name'), e, self._callvoteMinLevel[setting.get('name')]))
+                self.error('Error while reading min level %s config value: %s. Using default value: %d.' % (setting, e, self._callvoteMinLevel[setting]))
                 pass
             
         # Loading callvote spam protection settings
-        for setting in self.config.get('callvoteWaitTime'):
+        for setting in self.config.options('callvoteWaitTime'):
             try:
-                self._callvoteWaitTime[setting.get('name')] = int(setting.text)
-                self.debug('Callvote %s wait time set to: %d.' % (setting.get('name'), self._callvoteWaitTime[setting.get('name')]))
+                self._callvoteWaitTime[setting] = self.config.getint('callvoteWaitTime',setting)
+                self.debug('Callvote %s wait time set to: %d.' % (setting, self._callvoteWaitTime[setting]))
             except Exception, e:
-                self.error('Error while reading callvote %s wait time config value: %s. Using default value: %d.' % (setting.get('name'), e, self._callvoteWaitTime[setting.get('name')]))
+                self.error('Error while reading callvote %s wait time config value: %s. Using default value: %d.' % (setting, e, self._callvoteWaitTime[setting]))
                 pass    
             
                  
@@ -116,7 +122,7 @@ class CallvotePlugin(b3.plugin.Plugin):
             
         # Checking for correct Urban Terror version
         try:
-            gamename = self.consolegetCvar('gamename').getString()
+            gamename = self.console.getCvar('gamename').getString()
             if gamename != 'q3urt42':
                 self.error("Callvote logging is provided since Urban Terror 4.2. Disabling the plugin.")
                 self.disable()
@@ -218,7 +224,7 @@ class CallvotePlugin(b3.plugin.Plugin):
         Return a Callvote object from a given event
         """
         # Splitting the vote_string to get necessary data
-        data = string.split(event.data['vote_string'],None,1)
+        data = event.data.split(None,1)
         
         callvote = Callvote()
         callvote.client = event.client
@@ -284,15 +290,15 @@ class CallvotePlugin(b3.plugin.Plugin):
         if self._callvote.vote['max'] > 1:
             
             # We got some time to perform our checks on the current callvote
-            self.debug('Intercepted "/callvote %s" command. Performing checks on the current callvote.' % event.data['vote_string'])
+            self.debug('Intercepted "/callvote %s" command. Performing checks on the current callvote.' % event.data)
             
             try:
             
                 # Checking sufficient level for this type of vote
                 if self._callvote.client.maxLevel < self._callvoteMinLevel[self._callvote.data['type']]:
                     self.console.write('veto')
-                    self.debug('No sufficient level for client %s [@%s] performing "/callvote %s" command. Aborting votation.' % (self._callvote.client.name, self._callvote.client.id, event.data['vote_string']))
-                    self._callvote.client.message('^3You can\'t call this type of vote. Required level: ^1%s' % self.getRequiredUserLevel(self._callvoteMinLevel[self._callvote.data['type']]))
+                    self.debug('No sufficient level for client %s [@%s] performing "/callvote %s" command. Aborting votation.' % (self._callvote.client.name, self._callvote.client.id, event.data))
+                    self._callvote.client.message('^7You can\'t call this type of vote. Required level: ^1%s' % self.getRequiredUserLevel(self._callvoteMinLevel[self._callvote.data['type']]))
                     self.reset()
                     return False
                 
@@ -300,8 +306,8 @@ class CallvotePlugin(b3.plugin.Plugin):
                 nextCallvoteTime = self._lastCallvoteTime[self._callvote.data['type']] + self._callvoteWaitTime[self._callvote.data['type']]
                 if nextCallvoteTime > int(self.console.time()):
                     self.console.write('veto')
-                    self.debug('Intercepted vote spamming on "/callvote %s" command. Aborting votation."' % event.data['vote_string'])
-                    self._callvote.client.message('^3You need to wait ^7%s ^3to call this type of vote' % self.getHumanReadableTime(nextCallvoteTime - int(self.console.time())))
+                    self.debug('Intercepted vote spamming on "/callvote %s" command. Aborting votation."' % event.data)
+                    self._callvote.client.message('^7You need to wait ^3%s ^7to call this type of vote' % self.getHumanReadableTime(nextCallvoteTime - int(self.console.time())))
                     self.reset()
                     return False
                 
@@ -310,19 +316,19 @@ class CallvotePlugin(b3.plugin.Plugin):
                     sclient = self._adminPlugin.findClientPrompt(self._callvote.data['data'])
                     if not sclient:
                         self.console.write('veto')
-                        self.debug('Invalid target client name specified in "/callvote %s" command. Aborting votation.' % event.data['vote_string'])
-                        self._callvote.client.message('^3You specified an invalid target. Client ^7%s ^3is not on the server' % (self._callvote.data['data']))
+                        self.debug('Invalid target client name specified in "/callvote %s" command. Aborting votation.' % event.data)
+                        self._callvote.client.message('^7Invalid target. Client ^3%s ^7is not on the server' % (self._callvote.data['data']))
                         self.reset()
                         return False
                 
                 # Checking correct map name (only for map and nextmap callvote)
-                if self._callvote.data['type'] == 'map' or self._callvote.data['type'] == 'nextmap':
+                if self._callvote.data['type'] == 'map' or self._callvote.data['type'] == 'g_nextmap':
                     maps = self.console.getMaps()
                     if maps is not None:
                         if self._callvote.data['data'] not in maps:
                             self.console.write('veto')
-                            self.debug('Invalid map specified in "/callvote %s" command. Aborting votation.' % event.data['vote_string'])
-                            self._callvote.client.message('^3You specified an invalid map name. Map ^7%s ^3is not on the server' % (self._callvote.data['data']))
+                            self.debug('Invalid map specified in "/callvote %s" command. Aborting votation.' % event.data)
+                            self._callvote.client.message('^7Invalid map name. Map ^3%s ^7is not on the server' % (self._callvote.data['data']))
                             self.reset()
                             return False
                 
@@ -333,23 +339,23 @@ class CallvotePlugin(b3.plugin.Plugin):
                 
                 # If we got here means that the callvote is legit.
                 # We can now start a countdown like the one started by the Urban Terror server engine (more or less).
-                self.debug('Completed check on "/callvote %s" command. The callvote is legit. Starting the timer.' % event.data['vote_string'])
+                self.debug('Completed check on "/callvote %s" command. The callvote is legit. Starting the timer.' % event.data)
                 self._countdown = Timer(30, self.onCallvoteFinish)
                 self._countdown.start()
                 
             except KeyError, e:
                 # This type of vote is not handled by the plugin yet. Simply do nothing.
-                self.debug('Intercepted unhandled type of callvote command: /callvote %s. Discarding.' % event.data['vote_string'])
+                self.debug('Intercepted unhandled type of callvote command: /callvote %s. Discarding.' % event.data)
                 self.reset()
                 return False
            
         else:
             # Directly handling the finish of the votation.
-            self.debug('Unable to perform callvote checks. Directly handling the end of the current votation: %s' % event.data['vote_string'])
+            self.debug('Unable to perform callvote checks. Directly handling the end of the current votation: %s' % event.data)
             self.onCallvoteFinish()
         
           
-    def onVote(self, event):
+    def onClientVote(self, event):
         """\
         Handle client vote
         """
@@ -367,10 +373,10 @@ class CallvotePlugin(b3.plugin.Plugin):
                 self.debug('Event client callvote ended prematurely. All the active players already voted.')
                 self._countdown.cancel()
                 self._countdown = None
-                self.onVoteFinish()
+                self.onCallvoteFinish()
                 
     
-    def onVoteFinish(self):
+    def onCallvoteFinish(self):
         """\
         Handle the end of a votation
         """
@@ -423,14 +429,14 @@ class CallvotePlugin(b3.plugin.Plugin):
         if cursor.EOF:
             # No entries in the callvotelog table or missing join with
             # clients table. Can't do anything anyway..
-            cmd.sayLoudOrPM(client, '^3Unable to retrieve last vote data')
+            cmd.sayLoudOrPM(client, '^7Unable to retrieve last vote data')
             cursor.close()
             return False
         
         # Bulding the messages
         row = cursor.getRow()
-        msg1 = '^3Last vote issued by ^4%s ^2%s ^3ago' % (row['name'], self.getHumanReadableTime(int(self.console.time())-int(row['time_add'])))
-        msg2 = '^3Type: ^7%s ^3- Data: ^7%s ^3- Result: ^2%s^7:^1%s' % (row['type'], self.xStr(row['data']), row['yes'], row['no'])
+        msg1 = '^7Last vote issued by ^4%s ^2%s ^7ago' % (row['name'], self.getHumanReadableTime(int(self.console.time())-int(row['time_add'])))
+        msg2 = '^7Type: ^3%s ^7- Data: ^3%s ^7- Result: ^2%s^7:^1%s' % (row['type'], self.xStr(row['data']), row['yes'], row['no'])
         cursor.close()
         
         # Displaying messages
