@@ -47,3 +47,10 @@ Changelog
   - added new debug log messages
   - added callvote spam protection
   - code cleanup
+  
+13/09/2012 (v1.1.1 Mr.Click)  
+  - fixed xml configuration loading
+  - fixed some typos
+  - changed 'nextmap' to 'g_nextmap' as it's printed in the log file
+  - plugin test
+
