@@ -1,5 +1,5 @@
 # Callvote Plugin for BigBrotherBot
-# Copyright (C) 2012 Mr.Click
+# Copyright (C) 2012 Fenix
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,25 +17,28 @@
 #
 # CHANGELOG
 #
-# 28/08/2012 (v1.0 Mr.Click)
+# 28/08/2012 (v1.0 Fenix)
 #  - initial version
 #
-# 29/08/2012 (v1.1 Mr.Click)
+# 29/08/2012 (v1.1 Fenix)
 #  - plugin now handle also callvote for reload, restart and shuffleteams
 #  - changed configuration handler => using multiple dictionaries instead of separate variables
 #  - added new debug log messages
 #  - added callvote spam protection
 #  - code cleanup
 #
-# 13/09/2012 (v1.1.1 Mr.Click)  
+# 13/09/2012 (v1.1.1 Fenix)  
 #  - fixed xml configuration loading
 #  - fixed some typos
 #  - changed 'nextmap' to 'g_nextmap' as it's printed in the log file
 #  - plugin test
 #
+# 18/09/2012 (v1.1.2 Fenix)
+#  - Minor changes to client messages
+#  - Plugin now displays g_Nextmap name when a /callvote cyclemap or /callvote g_Nextmap is intercepted
 
-__author__ = 'Mr.Click - http://www.goreclan.net'
-__version__ = '1.1.1'
+__author__ = 'Fenix - http://www.goreclan.net'
+__version__ = '1.1.2'
 
 import b3
 import b3.plugin
@@ -307,7 +310,7 @@ class CallvotePlugin(b3.plugin.Plugin):
                 if nextCallvoteTime > int(self.console.time()):
                     self.console.write('veto')
                     self.debug('Intercepted vote spamming on "/callvote %s" command. Aborting votation."' % event.data)
-                    self._callvote.client.message('^7You need to wait ^3%s ^7to call this type of vote' % self.getHumanReadableTime(nextCallvoteTime - int(self.console.time())))
+                    self._callvote.client.message('^7You need to wait ^3%s ^7to call this type of vote.' % self.getHumanReadableTime(nextCallvoteTime - int(self.console.time())))
                     self.reset()
                     return False
                 
@@ -317,7 +320,7 @@ class CallvotePlugin(b3.plugin.Plugin):
                     if not sclient:
                         self.console.write('veto')
                         self.debug('Invalid target client name specified in "/callvote %s" command. Aborting votation.' % event.data)
-                        self._callvote.client.message('^7Invalid target. Client ^3%s ^7is not on the server' % (self._callvote.data['data']))
+                        self._callvote.client.message('^7Invalid target. Client ^3%s ^7is not on the server.' % (self._callvote.data['data']))
                         self.reset()
                         return False
                 
@@ -328,12 +331,12 @@ class CallvotePlugin(b3.plugin.Plugin):
                         if self._callvote.data['data'] not in maps:
                             self.console.write('veto')
                             self.debug('Invalid map specified in "/callvote %s" command. Aborting votation.' % event.data)
-                            self._callvote.client.message('^7Invalid map name. Map ^3%s ^7is not on the server' % (self._callvote.data['data']))
+                            self._callvote.client.message('^7Invalid map name. Map ^3%s ^7is not on the server.' % (self._callvote.data['data']))
                             self.reset()
                             return False
                 
                 # Displaying the nextmap name if we are on a cyclemap votation
-                if self._callvote.data['type'] == 'cyclemap':
+                if self._callvote.data['type'] == 'cyclemap' or self._callvote.data['type'] == 'g_nextmap':
                     mapname = self.console.getNextMap()
                     if mapname: self.console.say('^7Next Map: ^2%s' % mapname)
                 
@@ -343,7 +346,7 @@ class CallvotePlugin(b3.plugin.Plugin):
                 self._countdown = Timer(30, self.onCallvoteFinish)
                 self._countdown.start()
                 
-            except KeyError, e:
+            except KeyError:
                 # This type of vote is not handled by the plugin yet. Simply do nothing.
                 self.debug('Intercepted unhandled type of callvote command: /callvote %s. Discarding.' % event.data)
                 self.reset()
@@ -435,8 +438,8 @@ class CallvotePlugin(b3.plugin.Plugin):
         
         # Bulding the messages
         row = cursor.getRow()
-        msg1 = '^7Last vote issued by ^4%s ^2%s ^7ago' % (row['name'], self.getHumanReadableTime(int(self.console.time())-int(row['time_add'])))
-        msg2 = '^7Type: ^3%s ^7- Data: ^3%s ^7- Result: ^2%s^7:^1%s' % (row['type'], self.xStr(row['data']), row['yes'], row['no'])
+        msg1 = '^7Last vote issued by ^4%s ^2%s ^7ago.' % (row['name'], self.getHumanReadableTime(int(self.console.time())-int(row['time_add'])))
+        msg2 = '^7Type: ^3%s ^7- Data: ^3%s ^7- Result: ^2%s^7:^1%s^7.' % (row['type'], self.xStr(row['data']), row['yes'], row['no'])
         cursor.close()
         
         # Displaying messages
