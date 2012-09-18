@@ -1,7 +1,7 @@
 Callvote plugin for BigBrotherBot (www.bigbrotherbot.net)
 =============================================================
 
-By Mr.Click
+By Fenix
 
 
 Description
@@ -19,7 +19,7 @@ If Bob issue a /callvote command, the votation will end as soon as the countdown
 (spectators are excluded by the server engine and the player who issued the votation automatically voted F1 - go figure).
 
 At the current state what we can do is:
-    
+
     - check how many players are able to issue a /vote command
     - if more than 1, perform all the controls we need, otherwise handle directly the end of the current votation, in order to avoid problems (timing related)
 
@@ -32,7 +32,7 @@ Installation
  * create necessary table by importing callvote.sql into your MySQL database
  * edit your b3.xml config file adding :
  
-<plugin name="callvote" config="@b3/extplugins/conf/callvote.xml"/>
+       <plugin name="callvote" config="@b3/extplugins/conf/callvote.xml"/>
 
 
 Changelog
@@ -53,4 +53,8 @@ Changelog
   - fixed some typos
   - changed 'nextmap' to 'g_nextmap' as it's printed in the log file
   - plugin test
-
+  
+18/09/2012 (v1.1.2 Fenix)
+  - Minor changes to client messages
+  - Plugin now displays g_Nextmap name when a /callvote cyclemap or /callvote g_NextMap is intercepted
+  
