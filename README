@@ -38,17 +38,17 @@ Installation
 Changelog
 ---------
 
-28/08/2012 (v1.0 Mr.Click)
+28/08/2012 (v1.0 Fenix)
   - initial version
  
-29/08/2012 (v1.1 Mr.Click)
+29/08/2012 (v1.1 Fenix)
   - plugin now handle also callvote for reload, restart and shuffleteams
   - changed configuration handler => using multiple dictionaries instead of separate variables
   - added new debug log messages
   - added callvote spam protection
   - code cleanup
   
-13/09/2012 (v1.1.1 Mr.Click)  
+13/09/2012 (v1.1.1 Fenix)  
   - fixed xml configuration loading
   - fixed some typos
   - changed 'nextmap' to 'g_nextmap' as it's printed in the log file
