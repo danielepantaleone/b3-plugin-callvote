@@ -1,5 +1,6 @@
-# Callvote Plugin for BigBrotherBot
-# Copyright (C) 2012 Fenix
+#
+# Callvote Plugin for BigBrotherBot(B3) (www.bigbrotherbot.net)
+# Copyright (C) 2013 Fenix <fenix@urbanterror.info)
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -10,93 +11,122 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
-#
-# CHANGELOG
-#
-# 28/08/2012 (v1.0 Fenix)
-#  - initial version
-#
-# 29/08/2012 (v1.1 Fenix)
-#  - plugin now handle also callvote for reload, restart and shuffleteams
-#  - changed configuration handler => using multiple dictionaries instead of separate variables
-#  - added new debug log messages
-#  - added callvote spam protection
-#  - code cleanup
-#
-# 13/09/2012 (v1.1.1 Fenix)  
-#  - fixed xml configuration loading
-#  - fixed some typos
-#  - changed 'nextmap' to 'g_nextmap' as it's printed in the log file
-#  - plugin test
-#
-# 18/09/2012 (v1.1.2 Fenix)
-#  - Minor changes to client messages
-#  - Plugin now displays g_Nextmap name when a /callvote cyclemap or /callvote g_Nextmap is intercepted
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-__author__ = 'Fenix - http://www.goreclan.net'
-__version__ = '1.1.2'
+__author__ = 'Fenix - http://www.urbanterror.info'
+__version__ = '1.2'
 
 import b3
 import b3.plugin
 import b3.events
 from threading import Timer
 
-
 class Callvote:
-    client = None
-    data = { 'type' : None, 'time' : 0, 'data' : None }
-    vote = { 'yes': 0, 'no': 0, 'max' : 0 }    
 
+    client = None
+
+    cv_type = None
+    cv_data = None
+    
+    max_num = 0
+    num_yes = 0
+    num_no = 0
+    
+    time_add = 0
+    
+    
+    def __init__(self, client, cv_type, time_add):
+        """
+        Build the callvote object
+        """
+        self.client = client
+        self.cv_type = cv_type
+        self.time_add = time_add
+        self.num_yes = 1
+        
+        # Set the vote flag for future use
+        self.client.setvar(self,'voted', True)
+        
         
 class CallvotePlugin(b3.plugin.Plugin):
     
     _adminPlugin = None
-  
-    _callvoteMinLevel = { 'kick' : 20, 'map' : 20, 'g_nextmap' : 20, 'cyclemap' : 20, 'reload' : 20, 'restart' : 20, 'shuffleteams' : 20 }
-    _callvoteWaitTime = { 'kick' : 60, 'map' : 60, 'g_nextmap' : 60, 'cyclemap' : 60, 'reload' : 60, 'restart' : 60, 'shuffleteams' : 60 }
-    _lastCallvoteTime = { 'kick' :  0, 'map' :  0, 'g_nextmap' :  0, 'cyclemap' :  0, 'reload' :  0, 'restart' :  0, 'shuffleteams' :  0 }
-        
+    
     _callvote = None
-    _countdown = None
+    _callvoteTimer = None
+    _callvoteMinLevel = { 'capturelimit' : 0,
+                          'clientkick' : 0,
+                          'clientkickreason' : 0,
+                          'cyclemap' : 0,
+                          'exec' : 0,
+                          'fraglimit' : 0,
+                          'kick' : 0,
+                          'map' : 0,
+                          'reload' : 0,
+                          'restart' : 0,
+                          'shuffleteams' : 0,
+                          'swapteams' : 0,
+                          'timelimit' : 0, 
+                          'g_bluewaverespawndelay' : 0,
+                          'g_bombdefusetime' : 0,
+                          'g_bombexplodetime' : 0,
+                          'g_capturescoretime' : 0,
+                          'g_friendlyfire' : 0,
+                          'g_followstrict' : 0,
+                          'g_gametype' : 0,
+                          'g_gear' : 0,
+                          'g_matchmode' : 0,
+                          'g_maxrounds' : 0,
+                          'g_nextmap' : 0,
+                          'g_redwaverespawndelay' : 0,
+                          'g_respawndelay' : 0,
+                          'g_roundtime' : 0,
+                          'g_timeouts' : 0,
+                          'g_timeoutlength' : 0,
+                          'g_swaproles' : 0,
+                          'g_waverespawns' : 0 }
     
-    _INSERT_DATA = "INSERT INTO `callvotelog` (`client_id`, `type`, `data`, `yes`, `no`, `time_add`) VALUES ('%s', '%s', '%s', '%d', '%d', '%d')"
-    _INSERT_NO_DATA = "INSERT INTO `callvotelog` (`client_id`, `type`, `yes`, `no`, `time_add`) VALUES ('%s', '%s', '%d', '%d', '%d')"
-    _SELECT_LAST = "SELECT `c1`.`name`, `c2`.* FROM  `callvotelog` AS `c2` INNER JOIN `clients` AS `c1` ON `c1`.`id` = `c2`.`client_id` ORDER BY  `time_add` DESC LIMIT 0 , 1"
+    _team_gametype = ('tdm', 'ts', 'ftl', 'cah', 'ctf', 'bm')
+    
+    _sql = { 'q1' : "INSERT INTO `callvote` (`client_id`, `cv_type`, `cv_data`, `max_num`, `num_yes`, `num_no`, `time_add`) VALUES ('%s', '%s', '%s', '%d', '%d', '%d', '%d')",
+             'q2' : "SELECT `c1`.`name`, `c2`.* FROM  `callvote` AS `c2` INNER JOIN `clients` AS `c1` ON `c1`.`id` = `c2`.`client_id` ORDER BY `time_add` DESC LIMIT 0 , 1", }
     
     
-    def onLoadConfig(self):
-        """\
-        Load the config
+    def __init__(self, console, config):
         """
-        self.verbose('Loading config')
+        Build the plugin object
+        """
+        if console.gameName != 'iourt42':
+            console.critical("Callvote plugin can only work with Urban Terror 4.2")
         
-        # Loading callvote minimum required levels
-        for setting in self.config.options('callvoteMinLevel'):
-            try:
-                self._callvoteMinLevel[setting] = self.config.getint('callvoteMinLevel',setting)
-                self.debug('Callvote min level %s set to: %d.' % (setting, self._callvoteMinLevel[setting]))
-            except Exception, e:
-                self.error('Error while reading min level %s config value: %s. Using default value: %d.' % (setting, e, self._callvoteMinLevel[setting]))
-                pass
+        # Correctly initialize the plugin
+        super(CallvotePlugin, self).__init__(console, config)
+        
+        
+    def onLoadConfig(self):
+        """
+        Load plugin configuration
+        """
+        self.verbose('Loading configuration file...')
+        
+        for s in self.config.options('callvoteminlevel'):
             
-        # Loading callvote spam protection settings
-        for setting in self.config.options('callvoteWaitTime'):
             try:
-                self._callvoteWaitTime[setting] = self.config.getint('callvoteWaitTime',setting)
-                self.debug('Callvote %s wait time set to: %d.' % (setting, self._callvoteWaitTime[setting]))
+                self._callvoteMinLevel[s] = self.config.getint('callvoteminlevel', s)
+                self.debug('Minimum required level for \'%s\' set to: %d' % (s, self._callvoteMinLevel[s]))
             except Exception, e:
-                self.error('Error while reading callvote %s wait time config value: %s. Using default value: %d.' % (setting, e, self._callvoteWaitTime[setting]))
-                pass    
-            
+                self.error('Unable to load minimum required level for \'%s\': %s' % (s, e))
+                self.debug('Using default minimum required level for \'%s\': %d' % (s, self._callvoteMinLevel[s]))
+                 
                  
     def onStartup(self):
-        """\
+        """
         Initialize plugin settings
         """
+        # Get the admin plugin
         self._adminPlugin = self.console.getPlugin('admin')
         if not self._adminPlugin:    
             self.error('Could not find admin plugin')
@@ -108,33 +138,24 @@ class CallvotePlugin(b3.plugin.Plugin):
                 level = self.config.get('commands', cmd)
                 sp = cmd.split('-')
                 alias = None
-                if len(sp) == 2: cmd, alias = sp
+                if len(sp) == 2: 
+                    cmd, alias = sp
 
                 func = self.getCmd(cmd)
-                if func: self._adminPlugin.registerCommand(self, cmd, level, func, alias)
+                if func: 
+                    self._adminPlugin.registerCommand(self, cmd, level, func, alias)
         
         # Register the events needed
         self.registerEvent(b3.events.EVT_GAME_WARMUP)
+        self.registerEvent(b3.events.EVT_GAME_ROUND_START)
         self.registerEvent(b3.events.EVT_CLIENT_TEAM_CHANGE)
         self.registerEvent(b3.events.EVT_CLIENT_CALLVOTE)
         self.registerEvent(b3.events.EVT_CLIENT_VOTE)
-        
-        # Creating necessary variables inside the client object
-        for c in self.console.clients.getList():
-            c.setvar(self,'voted',False)
-            
-        # Checking for correct Urban Terror version
-        try:
-            gamename = self.console.getCvar('gamename').getString()
-            if gamename != 'q3urt42':
-                self.error("Callvote logging is provided since Urban Terror 4.2. Disabling the plugin.")
-                self.disable()
-        except Exception, e:
-            self.warning("Could not query server for gamename. Unable to check correct Urban Terror version. Disabling the plugin.", exc_info=e)
-            self.disable()
     
     
-    # ------------------------------------- Handle Events ------------------------------------- #        
+    # ######################################################################################### #
+    # ##################################### HANDLE EVENTS ##################################### #        
+    # ######################################################################################### #        
         
 
     def onEvent(self, event):
@@ -142,16 +163,32 @@ class CallvotePlugin(b3.plugin.Plugin):
         Handle intercepted events
         """
         if event.type == b3.events.EVT_GAME_WARMUP:
-            self.onWarmup()
-        if event.type == b3.events.EVT_CLIENT_TEAM_CHANGE:
+            
+            # In a team based gametype we have warmup flagging the map start,
+            # so we'll use this event to clear a previous callvote. Using
+            # EVT_GAME_ROUND_START is not correct since in a survivor gametype
+            # like TS and BOMB we have multiple round start in the same map
+            if self.console.game.gameType in self._team_gametype:
+                self.reset()
+        
+        elif event.type == b3.events.EVT_GAME_ROUND_START:
+          
+            # In a non team based gametype we do not have warmup but just round
+            # start, so we'll use this event to clear a previous callvote
+            if self.console.game.gameType not in self._team_gametype:
+                self.reset()
+                    
+        elif event.type == b3.events.EVT_CLIENT_TEAM_CHANGE:
             self.onTeamChange(event)
-        if event.type == b3.events.EVT_CLIENT_CALLVOTE:
-            self.onClientCallvote(event)                    
-        if event.type == b3.events.EVT_CLIENT_VOTE:
-            self.onClientVote(event)
+        elif event.type == b3.events.EVT_CLIENT_CALLVOTE:
+            self.onCallvote(event)                    
+        elif event.type == b3.events.EVT_CLIENT_VOTE:
+            self.onVote(event)
                     
                 
-    # --------------------------------------- Functions --------------------------------------- #
+    # ######################################################################################### #
+    # ####################################### FUNCTIONS ####################################### #        
+    # ######################################################################################### #
         
           
     def getCmd(self, cmd):
@@ -164,7 +201,7 @@ class CallvotePlugin(b3.plugin.Plugin):
       
     def xStr(self,s):
         if s is None:
-            return 'none'
+            return 'N/A'
         return s
     
     
@@ -172,51 +209,48 @@ class CallvotePlugin(b3.plugin.Plugin):
         """\
         Reset voting variables
         """
-        # Resetting client vars
         for c in self.console.clients.getList():
             c.setvar(self,'voted',False)
         
-        # Clearing the Timer if any
-        if self._countdown is not None:
-            self._countdown.cancel()
-            self._countdown = None
+        if self._callvoteTimer is not None:
+            self._callvoteTimer.cancel()
+            self._callvoteTimer = None
         
-        # Removing a previously set Callvote object
         self._callvote = None
+        
 
-          
-    def getHumanReadableTime(self, timestamp):
+    def getTimeString(self, time):
         """
-        Return a string representing the Human Readable Time of the given timestamp
+        Return a time string given it's value in seconds
         """
-        if timestamp < 60: 
-            if timestamp == 1: return '%d second' % timestamp
-            else: return '%d seconds' % timestamp
-        elif timestamp >= 60 and timestamp < 3600:
-            timestamp = round(timestamp/60)
-            if timestamp == 1: return '%d minute' % timestamp
-            else: return '%d minutes' % timestamp
-        else:
-            timestamp = round(timestamp/3600)
-            if timestamp == 1: return '%d hour' % timestamp
-            else: return '%d hours' % timestamp
+        if time < 60:
+            return '%d second%s' % (time, 's' if time > 1 else '')
+
+        if time >= 60 and time < 3600:
+            time = round(time/60)
+            return '%d minute%s' % (time, 's' if time > 1 else '')
+
+        time = round(time/3600)
+        return '%d hour%s' % (time, 's' if time > 1 else '')
             
             
-    def getRequiredUserLevel(self, level):
+    def getLevel(self, level):
         """
-        Returns the group name required to issue the specified type of /callvote command
+        Return the group name associated to the given group level
         """
         minGroup = None        
         groups = self.console.storage.getGroups()
         
         for x in groups:
-            if x.level < level: continue
-            if minGroup is not None:
-                # Matching previously set minGroup
-                if x.level < minGroup.level:
-                    minGroup = x
-            else:
-                # First iteration
+            
+            if x.level < level: 
+                continue
+            
+            if minGroup is None:
+                minGroup = x
+                continue
+
+            if x.level < minGroup.level:
                 minGroup = x
                 
         return minGroup.name
@@ -225,200 +259,126 @@ class CallvotePlugin(b3.plugin.Plugin):
     def getCallvote(self, event):
         """\
         Return a Callvote object from a given event
-        """
-        # Splitting the vote_string to get necessary data
-        data = event.data.split(None,1)
-        
-        callvote = Callvote()
-        callvote.client = event.client
-        callvote.client.setvar(self,'voted',True)
-        callvote.data['time'] = int(self.console.time())
-        callvote.data['type'] = data[0]
-        
-        # Votes such as cyclemap, reload, restart and shuffleteams 
-        # don't carry any information in the vote_string
-        if data[1]: callvote.data['data'] = data[1]
-        
-        # The player who issued the votation already voted F1
-        # We need to track this in order to build a correct voting result
-        # The assignment 'callvote.vote['no'] = 0' actually produce no effect, but still...    
-        callvote.vote['yes'] = 1
-        callvote.vote['no'] = 0
-        
-        # Computing the number of players that can actually vote
-        # In Urban Terror voting from spectator mode is not allowed
-        # so we have to discard players that are in b3.TEAM_SPEC team
+        """        
+        data = event.data.split(None, 1)
+        callvote = Callvote(event.client, data[0].lower(), self.console.time())
+
+        if data[1]: 
+            # Store extra data if any
+            callvote.cv_data = data[1]
+
         for c in self.console.clients.getList():
             if c.team != b3.TEAM_SPEC: 
-                callvote.vote['max'] += 1
+                callvote.max_num += 1
         
         return callvote
         
-    
-    def onWarmup(self):
-        """\
-        Handle game warmup
-        """
-        # Called on a new level.
-        # If there was a votation on the previous map the serve engine will automatically discard it.
-        # We are going to do the same by resetting all the callvote related variables
-        self.reset()
         
-        
-    def onClientCallvote(self, event):
+    def onCallvote(self, event):
         """\
-        Handle client callvote
+        Handle EVT_CLIENT_CALLVOTE
         """
         # Building a proper Callvote object
         self._callvote = self.getCallvote(event)
         
-        # Since there is a bit of delay between a /callvote command being issued on the server
-        # and the b3 generating the corresponding event, we probably are not able to control everything.
-        # As an example think about this situation:
-        #
-        #    Bob  - Team Red
-        #    Tom  - Team Spectator
-        #    Lisa - Team Spectator
-        #
-        # If Bob issue a /callvote command, the votation will end as soon as the countdown starts
-        # since he's the only one able to do /vote (spectators are excluded by the server engine 
-        # and the player who issued the votation automatically voted F1 - go figure).
-        #
-        # At the current state what we can do is:
-        #    
-        #    - check how many players are able to issue a /vote command
-        #    - if more than 1, perform all the controls we need, otherwise handle directly
-        #      the end of the current votation, in order to avoid problems (timing related)
+        # Only perform checks on the current callvote if there is more
+        # than 1 player being able to vote. If there is just 1 player in 
+        # non-spectator status, the vote will pass before we can actually 
+        # compute something on our side since there is a little bit of delay
+        # between what is happening on the server and what is being parsed
         
-        if self._callvote.vote['max'] > 1:
+        if self._callvote.max_num <= 1:
+            self.onCallvoteEnd()
             
-            # We got some time to perform our checks on the current callvote
-            self.debug('Intercepted "/callvote %s" command. Performing checks on the current callvote.' % event.data)
+        try:
             
-            try:
+            client = self._callvote.client
             
-                # Checking sufficient level for this type of vote
-                if self._callvote.client.maxLevel < self._callvoteMinLevel[self._callvote.data['type']]:
-                    self.console.write('veto')
-                    self.debug('No sufficient level for client %s [@%s] performing "/callvote %s" command. Aborting votation.' % (self._callvote.client.name, self._callvote.client.id, event.data))
-                    self._callvote.client.message('^7You can\'t call this type of vote. Required level: ^1%s' % self.getRequiredUserLevel(self._callvoteMinLevel[self._callvote.data['type']]))
-                    self.reset()
-                    return False
-                
-                # Checking vote spamming for this type of vote
-                nextCallvoteTime = self._lastCallvoteTime[self._callvote.data['type']] + self._callvoteWaitTime[self._callvote.data['type']]
-                if nextCallvoteTime > int(self.console.time()):
-                    self.console.write('veto')
-                    self.debug('Intercepted vote spamming on "/callvote %s" command. Aborting votation."' % event.data)
-                    self._callvote.client.message('^7You need to wait ^3%s ^7to call this type of vote.' % self.getHumanReadableTime(nextCallvoteTime - int(self.console.time())))
-                    self.reset()
-                    return False
-                
-                # Checking correct kick target (only for kick callvote)
-                if self._callvote.data['type'] == 'kick':
-                    sclient = self._adminPlugin.findClientPrompt(self._callvote.data['data'])
-                    if not sclient:
-                        self.console.write('veto')
-                        self.debug('Invalid target client name specified in "/callvote %s" command. Aborting votation.' % event.data)
-                        self._callvote.client.message('^7Invalid target. Client ^3%s ^7is not on the server.' % (self._callvote.data['data']))
-                        self.reset()
-                        return False
-                
-                # Checking correct map name (only for map and nextmap callvote)
-                if self._callvote.data['type'] == 'map' or self._callvote.data['type'] == 'g_nextmap':
-                    maps = self.console.getMaps()
-                    if maps is not None:
-                        if self._callvote.data['data'] not in maps:
-                            self.console.write('veto')
-                            self.debug('Invalid map specified in "/callvote %s" command. Aborting votation.' % event.data)
-                            self._callvote.client.message('^7Invalid map name. Map ^3%s ^7is not on the server.' % (self._callvote.data['data']))
-                            self.reset()
-                            return False
-                
-                # Displaying the nextmap name if we are on a cyclemap votation
-                if self._callvote.data['type'] == 'cyclemap' or self._callvote.data['type'] == 'g_nextmap':
-                    mapname = self.console.getNextMap()
-                    if mapname: self.console.say('^7Next Map: ^2%s' % mapname)
-                
-                # If we got here means that the callvote is legit.
-                # We can now start a countdown like the one started by the Urban Terror server engine (more or less).
-                self.debug('Completed check on "/callvote %s" command. The callvote is legit. Starting the timer.' % event.data)
-                self._countdown = Timer(30, self.onCallvoteFinish)
-                self._countdown.start()
-                
-            except KeyError:
-                # This type of vote is not handled by the plugin yet. Simply do nothing.
-                self.debug('Intercepted unhandled type of callvote command: /callvote %s. Discarding.' % event.data)
+            # Checking required user level for the current callvote
+            if client.maxLevel < self._callvoteMinLevel[self._callvote.cv_type]:
+                self.console.write('veto')
+                self.debug('Aborting \'/callvote %s\' command. No sufficient level for client [@%s]' % (event.data, client.id))
+                client.message('^7You can\'t call this vote. Required level: ^1%s' % self.getLevel(self._callvoteMinLevel[self._callvote.cv_type]))
                 self.reset()
-                return False
+                return
+            
+            # Displaying the nextmap name if it's a g_nextmap/cyclemap callvote
+            if self._callvote.cv_type == 'cyclemap' or self._callvote.cv_type == 'g_nextmap':
+                mapname = self.console.getNextMap()
+                if mapname: 
+                    self.console.say('^7Next Map: ^2%s' % mapname)
+            
+            self._callvoteTimer = Timer(30, self.onCallvoteEnd)
+            self._callvoteTimer.start()
+            
+        except KeyError:
+            
+            self.warning('Intercepted unhandled type of callvote command: /callvote %s' % event.data)
+            self.reset()
            
-        else:
-            # Directly handling the finish of the votation.
-            self.debug('Unable to perform callvote checks. Directly handling the end of the current votation: %s' % event.data)
-            self.onCallvoteFinish()
-        
           
-    def onClientVote(self, event):
-        """\
-        Handle client vote
+    def onVote(self, event):
         """
-        # Checking if we really are in a votation.
+        Handle EVT_CLIENT_VOTE
+        """
         if self._callvote is not None:
-            self.debug('Interceped "/vote %s" command. Handling the event.' % event.data['value'])
-            if int(event.data['value']) == 1:
-                self._callvote.vote['yes'] += 1
-            elif int(event.data['value']) == 2:
-                self._callvote.vote['no'] += 1
+            
+            if event.data['value'] == '1':
+                self._callvote.num_yes += 1
+            elif event.data['value'] == '2':
+                self._callvote.num_no += 1
 
-            # Checking if we collected all the necessary /vote commands for the current votation.
-            # If so we can cancel the timer and immediatly handle the end of the votation.
-            if self._callvote.vote['yes'] + self._callvote.vote['no'] >= self._callvote.vote['max']:
-                self.debug('Event client callvote ended prematurely. All the active players already voted.')
-                self._countdown.cancel()
-                self._countdown = None
-                self.onCallvoteFinish()
+            if self._callvote.num_yes + self._callvote.num_no >= self._callvote.max_num:
+                self.debug('Event client callvote finished. All the active players voted')
+                self._callvoteTimer.cancel()
+                self._callvoteTimer = None
+                self.onCallvoteEnd()
                 
     
-    def onCallvoteFinish(self):
+    def onCallvoteEnd(self):
         """\
-        Handle the end of a votation
+        Handle the end of a callvote
         """
-        # Checking if we really are in a votation.
         if self._callvote is not None:
-            # Storing the callvote in the database
-            if self._callvote.data['data'] is not None:
-                self.debug("Event client callvote finished [ type : %s | data : %s | result : (%d:%d) ]" % (self._callvote.data['type'], self._callvote.data['data'], self._callvote.vote['yes'], self._callvote.vote['no']))
-                self.console.storage.query(self._INSERT_DATA % (self._callvote.client.id, self._callvote.data['type'], self._callvote.data['data'], self._callvote.vote['yes'], self._callvote.vote['no'], self._callvote.data['time']))
-            else:
-                self.debug("Event client callvote finished [ type : %s | result : (%d:%d) ]" % (self._callvote.data['type'], self._callvote.vote['yes'], self._callvote.vote['no']))
-                self.console.storage.query(self._INSERT_NO_DATA % (self._callvote.client.id, self._callvote.data['type'], self._callvote.vote['yes'], self._callvote.vote['no'], self._callvote.data['time']))
+            
+            self.console.storage.query(self._sql['q1'] % (self._callvote.client.id, 
+                                                          self._callvote.cv_type, 
+                                                          self._callvote.cv_data, 
+                                                          self._callvote.max_num,
+                                                          self._callvote.num_yes, 
+                                                          self._callvote.num_no, 
+                                                          self._callvote.time_add))
+            
+            self.debug("Stored new callvote [ cv_type : %s | cv_data : %s | max_num : %d | num_yes: %d | num_no : %d ]" % (self._callvote.cv_type, 
+                                                                                                                           self.xStr(self._callvote.cv_data), 
+                                                                                                                           self._callvote.max_num,
+                                                                                                                           self._callvote.num_yes, 
+                                                                                                                           self._callvote.num_no))
         
-        # No need to put this in the if clause.
-        # We are going to reset everything anyway...    
         self.reset()
                 
                  
     def onTeamChange(self, event):
         """\
-        Handle team changes events
+        Handle EVT_CLIENT_TEAM_CHANGE
         """
-        # We need to adjust the maximum number of clients that can take part
-        # to the current votation according to team change (spectators are excluded)
         if self._callvote is not None:
             if event.data != b3.TEAM_SPEC:
-                if not event.client.isvar(self,'voted') or event.client.var(self,'voted').value == False:
-                    self._callvote.vote['max'] += 1
+                if not event.client.var(self,'voted').value:
+                    self._callvote.max_num += 1
             elif event.data == b3.TEAM_SPEC:
-                if not event.client.isvar(self,'voted') or event.client.var(self,'voted').value == False:
-                    self._callvote.vote['max'] -= 1
+                if not event.client.var(self,'voted').value:
+                    self._callvote.max_num -= 1
 
         
-    # --------------------------------------- Commands --------------------------------------- #
-    
+    # ######################################################################################### #
+    # ######################################## COMMANDS ####################################### #        
+    # ######################################################################################### # 
+
   
     def cmd_veto(self, data, client, cmd=None):
         """\
-        Cancel the vote in progress
+        Cancel the current callvote
         """
         self.console.write('veto')
         self.reset()
@@ -426,23 +386,20 @@ class CallvotePlugin(b3.plugin.Plugin):
     
     def cmd_lastvote(self, data, client, cmd=None):
         """\
-        Displays informations about the last vote
+        Display informations about the last callvote
         """
-        cursor = self.console.storage.query(self._SELECT_LAST)
+        cursor = self.console.storage.query(self._sql['q2'])
         if cursor.EOF:
-            # No entries in the callvotelog table or missing join with
-            # clients table. Can't do anything anyway..
-            cmd.sayLoudOrPM(client, '^7Unable to retrieve last vote data')
+            cmd.sayLoudOrPM(client, '^7Could not retrieve last callvote')
             cursor.close()
-            return False
+            return
         
-        # Bulding the messages
         row = cursor.getRow()
-        msg1 = '^7Last vote issued by ^4%s ^2%s ^7ago.' % (row['name'], self.getHumanReadableTime(int(self.console.time())-int(row['time_add'])))
-        msg2 = '^7Type: ^3%s ^7- Data: ^3%s ^7- Result: ^2%s^7:^1%s^7.' % (row['type'], self.xStr(row['data']), row['yes'], row['no'])
+        msg1 = '^7Last vote issued by ^4%s ^2%s ^7ago.' % (row['name'], self.getTimeString(self.console.time() - int(row['time_add'])))
+        msg2 = '^7Type: ^3%s ^7- Data: ^3%s ^7- Result: ^2%s^7:^1%s^7.' % (row['cv_type'], self.xStr(row['cv_data']), row['num_yes'], row['num_no'])
+        
         cursor.close()
         
-        # Displaying messages
         cmd.sayLoudOrPM(client, msg1)
         cmd.sayLoudOrPM(client, msg2)
         

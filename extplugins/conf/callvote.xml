@@ -1,24 +1,39 @@
 <configuration plugin="callvote">
-	<settings name="callvoteMinLevel">
-        <set name='kick'>20</set>				<!-- Min level to issue "/callvote kick <player>" command. 0 = everyone -->	
-        <set name='map'>20</set>				<!-- Min level to issue "/callvote map <mapname>" command. 0 = everyone -->	
-        <set name='nextmap'>20</set>			<!-- Min level to issue "/callvote nextmap <mapname>" command. 0 = everyone -->	
-        <set name='cyclemap'>20</set>			<!-- Min level to issue "/callvote cyclemap" command. 0 = everyone -->	
-        <set name='reload'>20</set>				<!-- Min level to issue "/callvote reload" command. 0 = everyone -->	
-        <set name='restart'>20</set>			<!-- Min level to issue "/callvote restart" command. 0 = everyone -->	
-        <set name='shuffleteams'>20</set>		<!-- Min level to issue "/callvote shuffleteams" command. 0 = everyone -->	
-	</settings>
-	<settings name='callvoteWaitTime'>
-		<set name='kick'>60</set>				<!-- Seconds between each "/callvote kick <player>" command. 0 = disable function -->
-		<set name='map'>60</set>				<!-- Seconds between each "/callvote map <mapname>" command. 0 = disable function -->
-		<set name='nextmap'>60</set>			<!-- Seconds between each "/callvote nextmap <mapname>" command. 0 = disable function -->
-		<set name='cyclemap'>60</set>			<!-- Seconds between each "/callvote cyclemap" command. 0 = disable function -->
-		<set name='reload'>60</set>				<!-- Seconds between each "/callvote reload" command. 0 = disable function -->
-		<set name='restart'>60</set>			<!-- Seconds between each "/callvote restart" command. 0 = disable function -->
-		<set name='shuffleteams'>60</set>		<!-- Seconds between each "/callvote shuffleteams" command. 0 = disable function -->
-	</settings>
+    <settings name="callvoteminlevel">
+        <set name='capturelimit'>0</set>
+        <set name='clientkick'>0</set>
+        <set name='clientkickreason'>0</set>
+        <set name='cyclemap'>0</set>
+        <set name='exec'>0</set>
+        <set name='fraglimit'>0</set>
+        <set name='kick'>0</set>
+        <set name='map'>0</set>
+        <set name='reload'>0</set>
+        <set name='restart'>0</set>
+        <set name='shuffleteams'>0</set>
+        <set name='swapteams'>0</set>
+        <set name='timelimit'>0</set> 
+        <set name='g_bluewaverespawndelay'>0</set>
+        <set name='g_bombdefusetime'>0</set>
+        <set name='g_bombexplodetime'>0</set>
+        <set name='g_capturescoretime'>0</set>
+        <set name='g_friendlyfire'>0</set>
+        <set name='g_followstrict'>0</set>
+        <set name='g_gametype'>0</set>
+        <set name='g_gear'>0</set>
+        <set name='g_matchmode'>0</set>
+        <set name='g_maxrounds'>0</set>
+        <set name='g_nextmap'>0</set>
+        <set name='g_redwaverespawndelay'>0</set>
+        <set name='g_respawndelay'>0</set>
+        <set name='g_roundtime'>0</set>
+        <set name='g_timeouts'>0</set>
+        <set name='g_timeoutlength'>0</set>
+        <set name='g_swaproles'>0</set>
+        <set name='g_waverespawns'>0</set>
+    </settings>
 	<settings name="commands">
-        <set name='lastvote'>20</set>			<!-- Display informations related to the last votation -->
-        <set name='veto-paveto'>20</set>		<!-- Cancel the current votation -->
+        <set name='lastvote'>20</set>
+        <set name='paveto-veto'>20</set>
 	</settings>	
 </configuration>
