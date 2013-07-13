@@ -12,7 +12,7 @@ As an example think about this situation:
     Tom  - Team Spectator
     Lisa - Team Spectator
  
-If Bob issue a /callvote command, the callvote will end as soon as the countdown starts since he's the only one able to do /vote.<br />
+If Bob issue a /callvote command, the callvote will end as soon as the countdown starts since he's the only one able to do /vote. 
 Because of this we will perform checks on a callvote being issued on the server just if there is more than 1 player being able to vote.
 
 ## How to install
