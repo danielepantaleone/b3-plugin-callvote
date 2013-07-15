@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __author__ = 'Fenix - http://www.urbanterror.info'
-__version__ = '1.2'
+__version__ = '1.2.1'
 
 import b3
 import b3.plugin
@@ -95,17 +95,16 @@ class CallvotePlugin(b3.plugin.Plugin):
              'q2' : "SELECT `c1`.`name`, `c2`.* FROM  `callvote` AS `c2` INNER JOIN `clients` AS `c1` ON `c1`.`id` = `c2`.`client_id` ORDER BY `time_add` DESC LIMIT 0 , 1", }
     
     
-    def __init__(self, console, config):
+    def __init__(self, console, config=None):
         """
         Build the plugin object
         """
-        if console.gameName != 'iourt42':
-            console.critical("Callvote plugin can only work with Urban Terror 4.2")
-        
-        # Correctly initialize the plugin
-        super(CallvotePlugin, self).__init__(console, config)
-        
-        
+        b3.plugin.Plugin.__init__(self, console, config)
+        if self.console.gameName != 'iourt42':
+            self.critical("unsupported game : %s" % self.console.gameName)
+            raise SystemExit(220)
+
+
     def onLoadConfig(self):
         """
         Load plugin configuration
