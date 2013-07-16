@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __author__ = 'Fenix - http://www.urbanterror.info'
-__version__ = '1.2.1'
+__version__ = '1.2.2'
 
 import b3
 import b3.plugin
@@ -262,7 +262,7 @@ class CallvotePlugin(b3.plugin.Plugin):
         data = event.data.split(None, 1)
         callvote = Callvote(event.client, data[0].lower(), self.console.time())
 
-        if data[1]: 
+        if len(data) > 1: 
             # Store extra data if any
             callvote.cv_data = data[1]
 
@@ -395,10 +395,11 @@ class CallvotePlugin(b3.plugin.Plugin):
         
         row = cursor.getRow()
         msg1 = '^7Last vote issued by ^4%s ^2%s ^7ago' % (row['name'], self.getTimeString(self.console.time() - int(row['time_add'])))
-        msg2 = '^7Type: ^3%s ^7- Data: ^3%s ^7- [^2%s^7:^1%s^7]' % (row['cv_type'], self.xStr(row['cv_data']), row['num_yes'], row['num_no'])
-        
+        msg2 = '^7Type: ^3%s ^7- Data: ^3%s' % (row['cv_type'], self.xStr(row['cv_data']))
+        msg3 = '^7Result: [^2%s^7:^1%s^7] on ^3%s ^7online client%s' % (row['num_yes'], row['num_no'], row['max_num'], 's' if int(row['max_num']) > 1 else '')
         cursor.close()
         
         cmd.sayLoudOrPM(client, msg1)
         cmd.sayLoudOrPM(client, msg2)
+        cmd.sayLoudOrPM(client, msg3)
         
