@@ -33,6 +33,10 @@ also in the Poweradminurt) will be correctly overridden and the plugin will work
 * Urban Terror 4.2 server
 * iourt42 parser
 
+## In-game user guide
+
+* **!lastvote** *Display the last callvote issued on the server*
+
 ## Support
 
 For support regarding this very plugin you can find me on IRC on **#urbanterror / #goreclan** @ **Quakenet**<br>
