@@ -394,8 +394,8 @@ class CallvotePlugin(b3.plugin.Plugin):
             return
         
         row = cursor.getRow()
-        msg1 = '^7Last vote issued by ^4%s ^2%s ^7ago.' % (row['name'], self.getTimeString(self.console.time() - int(row['time_add'])))
-        msg2 = '^7Type: ^3%s ^7- Data: ^3%s ^7- Result: ^2%s^7:^1%s^7.' % (row['cv_type'], self.xStr(row['cv_data']), row['num_yes'], row['num_no'])
+        msg1 = '^7Last vote issued by ^4%s ^2%s ^7ago' % (row['name'], self.getTimeString(self.console.time() - int(row['time_add'])))
+        msg2 = '^7Type: ^3%s ^7- Data: ^3%s ^7- [^2%s^7:^1%s^7]' % (row['cv_type'], self.xStr(row['cv_data']), row['num_yes'], row['num_no'])
         
         cursor.close()
         
