@@ -322,9 +322,9 @@ class CallvotePlugin(b3.plugin.Plugin):
         """
         if self._callvote is not None:
             
-            if event.data['value'] == '1':
+            if event.data == '1':
                 self._callvote.num_yes += 1
-            elif event.data['value'] == '2':
+            elif event.data == '2':
                 self._callvote.num_no += 1
 
             if self._callvote.num_yes + self._callvote.num_no >= self._callvote.max_num:
