@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __author__ = 'Fenix - http://www.urbanterror.info'
-__version__ = '1.2.2'
+__version__ = '1.2.3'
 
 import b3
 import b3.plugin
@@ -288,6 +288,7 @@ class CallvotePlugin(b3.plugin.Plugin):
         
         if self._callvote.max_num <= 1:
             self.onCallvoteEnd()
+            return
             
         try:
             
