@@ -34,6 +34,6 @@
     </settings>
 	<settings name="commands">
         <set name='lastvote'>20</set>
-        <set name='paveto-veto'>20</set>
+        <set name='veto'>20</set>
 	</settings>	
 </configuration>
