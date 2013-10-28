@@ -31,7 +31,7 @@ also in the Poweradminurt) will be correctly overridden and the plugin will work
 ### Requirements
 
 * Urban Terror 4.2 server
-* iourt42 parser (at least v1.17)
+* iourt42 parser (at least v1.18)
 
 ## In-game user guide
 
