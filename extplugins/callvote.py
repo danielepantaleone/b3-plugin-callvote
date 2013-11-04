@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __author__ = 'Fenix - http://www.urbanterror.info'
-__version__ = '1.3'
+__version__ = '1.3.1'
 
 import b3
 import b3.plugin
@@ -30,7 +30,7 @@ class CallvotePlugin(b3.plugin.Plugin):
     _adminPlugin = None
 
     _callvote = dict()
-    _callvoteArgParse = re.compile(r"""^(?P<type>\w+)\s?(?P<args>.*)$""");
+    _callvoteArgParse = re.compile(r"""^(?P<type>\w+)\s?(?P<args>.*)$""")
 
     _callvoteMinLevel = {'capturelimit': 0, 'clientkick': 0, 'clientkickreason': 0, 'cyclemap': 0, 'exec': 0,
                          'fraglimit': 0, 'kick': 0, 'map': 0, 'reload': 0, 'restart': 0, 'shuffleteams': 0,
