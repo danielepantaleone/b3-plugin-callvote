@@ -32,13 +32,15 @@ class CallvotePlugin(b3.plugin.Plugin):
     _callvote = dict()
     _callvoteArgParse = re.compile(r"""^(?P<type>\w+)\s?(?P<args>.*)$""")
 
-    _callvoteMinLevel = {'capturelimit': 0, 'clientkick': 0, 'clientkickreason': 0, 'cyclemap': 0, 'exec': 0,
-                         'fraglimit': 0, 'kick': 0, 'map': 0, 'reload': 0, 'restart': 0, 'shuffleteams': 0,
-                         'swapteams': 0, 'timelimit': 0, 'g_bluewaverespawndelay': 0, 'g_bombdefusetime': 0,
-                         'g_bombexplodetime': 0, 'g_capturescoretime': 0, 'g_friendlyfire': 0, 'g_followstrict': 0,
-                         'g_gametype': 0, 'g_gear': 0, 'g_matchmode': 0, 'g_maxrounds': 0, 'g_nextmap': 0,
-                         'g_redwaverespawndelay': 0, 'g_respawndelay': 0, 'g_roundtime': 0, 'g_timeouts': 0,
-                         'g_timeoutlength': 0, 'g_swaproles': 0, 'g_waverespawns': 0}
+    _callvoteMinLevel = {
+        'capturelimit': 0, 'clientkick': 0, 'clientkickreason': 0, 'cyclemap': 0, 'exec': 0,
+        'fraglimit': 0, 'kick': 0, 'map': 0, 'reload': 0, 'restart': 0, 'shuffleteams': 0,
+        'swapteams': 0, 'timelimit': 0, 'g_bluewaverespawndelay': 0, 'g_bombdefusetime': 0,
+        'g_bombexplodetime': 0, 'g_capturescoretime': 0, 'g_friendlyfire': 0, 'g_followstrict': 0,
+        'g_gametype': 0, 'g_gear': 0, 'g_matchmode': 0, 'g_maxrounds': 0, 'g_nextmap': 0,
+        'g_redwaverespawndelay': 0, 'g_respawndelay': 0, 'g_roundtime': 0, 'g_timeouts': 0,
+        'g_timeoutlength': 0, 'g_swaproles': 0, 'g_waverespawns': 0,
+    }
 
     _sql = dict(
         q1="""INSERT INTO `callvote` VALUES (NULL, '%s', '%s', '%s', '%d', '%d', '%d', '%d')""",
@@ -48,7 +50,7 @@ class CallvotePlugin(b3.plugin.Plugin):
                      INNER JOIN `clients` AS `c1`
                      ON `c1`.`id` = `c2`.`client_id`
                      ORDER BY `time_add` DESC
-                     LIMIT 0 , 1"""
+                     LIMIT 0 , 1""",
     )
 
     def __init__(self, console, config=None):
