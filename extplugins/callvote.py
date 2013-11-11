@@ -66,16 +66,15 @@ class CallvotePlugin(b3.plugin.Plugin):
         """\
         Load plugin configuration
         """
-        self.verbose('Loading configuration file...')
+        try:
 
-        for s in self.config.options('callvoteminlevel'):
-
-            try:
+            for s in self.config.options('callvoteminlevel'):
                 self._callvoteMinLevel[s] = self.config.getint('callvoteminlevel', s)
                 self.debug('minimum required level for [%s] set to: %d' % (s, self._callvoteMinLevel[s]))
-            except Exception, e:
-                self.error('could not load minimum required level for [%s]: %s' % (s, e))
-                self.debug('using default minimum required level for [%s]: %d' % (s, self._callvoteMinLevel[s]))
+
+        except KeyError, e:
+            self.error('could not find section [callvoteminlevel] in config file: %s' % e)
+            self.debug('using default callvoteminlevel configuration: %s' % self._callvoteMinLevel)
 
     def onStartup(self):
         """\
@@ -104,6 +103,9 @@ class CallvotePlugin(b3.plugin.Plugin):
         self.registerEvent(b3.events.EVT_CLIENT_CALLVOTE)
         self.registerEvent(b3.events.EVT_VOTE_PASSED)
         self.registerEvent(b3.events.EVT_VOTE_FAILED)
+
+        # notice plugin started
+        self.debug('plugin started')
 
     # ######################################################################################### #
     # ##################################### HANDLE EVENTS ##################################### #        
