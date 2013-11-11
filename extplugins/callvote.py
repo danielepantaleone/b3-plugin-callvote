@@ -117,8 +117,7 @@ class CallvotePlugin(b3.plugin.Plugin):
         """
         if event.type == b3.events.EVT_CLIENT_CALLVOTE:
             self.onCallvote(event)
-        elif event.type == b3.events.EVT_VOTE_PASSED or \
-             event.type == b3.events.EVT_VOTE_FAILED:
+        elif event.type == b3.events.EVT_VOTE_PASSED or event.type == b3.events.EVT_VOTE_FAILED:
             self.onCallvoteFinish(event)
 
     # ######################################################################################### #
