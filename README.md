@@ -24,10 +24,6 @@ Because of this we will perform checks on a callvote being issued on the server 
 * Import **callvote.sql** into your b3 database
 * Load the plugin in your **b3.xml** configuration file
 
-If you are using the Poweradminurt plugin by Courgette, be sure to load the Callvote plugin after that one otherwise you will experience some bugs; in this plugin the command 
-!paveto (!veto) has been reimplemented with some addons specific for the plugin functionalities. If the Callvote plugin will be loaded after the Poweradminurt, such command (provided
-also in the Poweradminurt) will be correctly overridden and the plugin will work correctly.
-
 ### Requirements
 
 * Urban Terror 4.2 server
@@ -36,6 +32,7 @@ also in the Poweradminurt) will be correctly overridden and the plugin will work
 ## In-game user guide
 
 * **!lastvote** *Display the last callvote issued on the server*
+* **!veto** *Cancel the current callvote*
 
 ## Support
 
