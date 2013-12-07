@@ -66,15 +66,9 @@ class CallvotePlugin(b3.plugin.Plugin):
         """\
         Load plugin configuration
         """
-        try:
-
-            for s in self.config.options('callvoteminlevel'):
-                self._callvoteMinLevel[s] = self.config.getint('callvoteminlevel', s)
-                self.debug('minimum required level for [%s] set to: %d' % (s, self._callvoteMinLevel[s]))
-
-        except KeyError, e:
-            self.error('could not find section [callvoteminlevel] in config file: %s' % e)
-            self.debug('using default callvoteminlevel configuration: %s' % self._callvoteMinLevel)
+        for s in self.config.options('callvoteminlevel'):
+            self._callvoteMinLevel[s] = self.config.getint('callvoteminlevel', s)
+            self.debug('minimum required level for [%s] set to: %d' % (s, self._callvoteMinLevel[s]))
 
     def onStartup(self):
         """\

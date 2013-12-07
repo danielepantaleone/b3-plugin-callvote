@@ -32,6 +32,15 @@
         <set name='g_swaproles'>0</set>
         <set name='g_waverespawns'>0</set>
     </settings>
+    <settings name="callvotespecialmaplist">
+        <!--
+        You can define here a special map list. Only users
+        with the group level specified (and above) will be able
+        to issue a callvote for map/nextmap if the map is loisted here.
+        <set name="ut4_abbey">100</set>
+        <set name="ut4_abbeyctf">100</set>
+        -->
+    </settings>
 	<settings name="commands">
         <set name='lastvote'>20</set>
         <set name='veto'>20</set>
