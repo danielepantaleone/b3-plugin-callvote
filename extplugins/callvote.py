@@ -30,6 +30,7 @@ class CallvotePlugin(b3.plugin.Plugin):
     _adminPlugin = None
 
     _callvote = dict()
+    _callvoteSpecialMaplist = dict()
     _callvoteArgParse = re.compile(r"""^(?P<type>\w+)\s?(?P<args>.*)$""")
 
     _callvoteMinLevel = {
@@ -69,6 +70,11 @@ class CallvotePlugin(b3.plugin.Plugin):
         for s in self.config.options('callvoteminlevel'):
             self._callvoteMinLevel[s] = self.config.getint('callvoteminlevel', s)
             self.debug('minimum required level for [%s] set to: %d' % (s, self._callvoteMinLevel[s]))
+
+        for s in self.config.options('callvotespecialmaplist'):
+            s = s.lower()  # lowercase the map name to avoid false positives
+            self._callvoteSpecialMaplist[s] = self.config.getint('callvotespecialmaplist', s)
+            self.debug('minimum required level to vote map [%s] set to: %d' % (s, self._callvoteSpecialMaplist[s]))
 
     def onStartup(self):
         """\
@@ -203,12 +209,24 @@ class CallvotePlugin(b3.plugin.Plugin):
             lv = self._callvoteMinLevel[tp]
 
             # checking required user level
-            # for the current callvote
             if cl.maxLevel < lv:
                 self.console.write('veto')
                 self.debug('aborting [callvote %s] command: no sufficient level for client [@%s]' % (tp, cl.id))
                 cl.message('^7You can\'t call this vote. Required level: ^1%s' % self.getLevel(lv))
                 return
+
+            # checking required user level
+            # for callvote map/nextmap to be higher
+            # then the one specified in the config file
+            if tp == 'map' or tp == 'g_nextmap':
+                mapname = self._callvote['args'].lower()
+                if mapname in self._callvoteSpecialMaplist.keys():
+                    lv = self._callvoteSpecialMaplist[mapname]
+                    if cl.maxLevel < lv:
+                        self.console.write('veto')
+                        self.debug('aborting [callvote %s] command: no sufficient level for client [@%s]' % (tp, cl.id))
+                        cl.message('^7You can\'t call this vote. Required level: ^1%s' % self.getLevel(lv))
+                        return
 
             # display the nextmap name if it's a g_nextmap/cyclemap callvote
             if tp == 'cyclemap' or tp == 'g_nextmap':
