@@ -16,7 +16,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-__author__ = 'Fenix - http://www.urbanterror.info'
+__author__ = 'Fenix'
 __version__ = '1.4'
 
 import b3
