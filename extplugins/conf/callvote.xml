@@ -36,7 +36,7 @@
         <!--
         You can define here a special map list. Only users
         with the group level specified (and above) will be able
-        to issue a callvote for map/nextmap if the map is loisted here.
+        to issue a callvote for map/nextmap if the map is listed here.
         <set name="ut4_abbey">100</set>
         <set name="ut4_abbeyctf">100</set>
         -->
