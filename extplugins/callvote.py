@@ -33,6 +33,8 @@ class CallvotePlugin(b3.plugin.Plugin):
     _callvoteSpecialMaplist = dict()
     _callvoteArgParse = re.compile(r"""^(?P<type>\w+)\s?(?P<args>.*)$""")
 
+    _eventHandle = dict()
+
     _callvoteMinLevel = {
         'capturelimit': 0, 'clientkick': 0, 'clientkickreason': 0, 'cyclemap': 0, 'exec': 0,
         'fraglimit': 0, 'kick': 0, 'map': 0, 'reload': 0, 'restart': 0, 'shuffleteams': 0,
@@ -114,6 +116,11 @@ class CallvotePlugin(b3.plugin.Plugin):
         self.registerEvent(b3.events.EVT_VOTE_PASSED)
         self.registerEvent(b3.events.EVT_VOTE_FAILED)
 
+        # map event on specific functions
+        self._eventHandle[b3.events.EVT_CLIENT_CALLVOTE] = self.onCallvote
+        self._eventHandle[b3.events.EVT_VOTE_PASSED] = self.onCallvoteFinish
+        self._eventHandle[b3.events.EVT_VOTE_FAILED] = self.onCallvoteFinish
+
         # notice plugin started
         self.debug('plugin started')
 
@@ -125,10 +132,8 @@ class CallvotePlugin(b3.plugin.Plugin):
         """\
         Handle intercepted events
         """
-        if event.type == b3.events.EVT_CLIENT_CALLVOTE:
-            self.onCallvote(event)
-        elif event.type == b3.events.EVT_VOTE_PASSED or event.type == b3.events.EVT_VOTE_FAILED:
-            self.onCallvoteFinish(event)
+        if event.type in self._eventHandle.keys():
+            self._eventHandle[event.type](event)
 
     # ######################################################################################### #
     # ####################################### FUNCTIONS ####################################### #        
