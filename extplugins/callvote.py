@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __author__ = 'Fenix'
-__version__ = '1.5'
+__version__ = '1.6'
 
 import b3
 import b3.plugin
@@ -68,13 +68,23 @@ class CallvotePlugin(b3.plugin.Plugin):
         Load plugin configuration
         """
         for s in self.config.options('callvoteminlevel'):
-            self._callvoteMinLevel[s] = self.config.getint('callvoteminlevel', s)
-            self.debug('minimum required level for [%s] set to: %d' % (s, self._callvoteMinLevel[s]))
+
+            try:
+                self._callvoteMinLevel[s] = self.config.getint('callvoteminlevel', s)
+                self.debug('minimum required level for [%s] set to: %d' % (s, self._callvoteMinLevel[s]))
+            except ValueError, e:
+                self.error('could not load settings/%s config value: %s' % (s, e))
+                self.debug('using default value (%s) for settings/%s' % (s, self._callvoteMinLevel[s]))
 
         for s in self.config.options('callvotespecialmaplist'):
-            s = s.lower()  # lowercase the map name to avoid false positives
-            self._callvoteSpecialMaplist[s] = self.config.getint('callvotespecialmaplist', s)
-            self.debug('minimum required level to vote map [%s] set to: %d' % (s, self._callvoteSpecialMaplist[s]))
+
+            try:
+                s = s.lower()  # lowercase the map name to avoid false positives
+                self._callvoteSpecialMaplist[s] = self.config.getint('callvotespecialmaplist', s)
+                self.debug('minimum required level to vote map [%s] set to: %d' % (s, self._callvoteSpecialMaplist[s]))
+            except ValueError, e:
+                # can0t load a default value here since the mapnam is dynamic
+                self.error('could not load settings/%s config value: %s' % (s, e))
 
     def onStartup(self):
         """\
