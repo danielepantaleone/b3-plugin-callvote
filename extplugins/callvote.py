@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __author__ = 'Fenix'
-__version__ = '1.6'
+__version__ = '1.7'
 
 import b3
 import b3.plugin
@@ -32,8 +32,6 @@ class CallvotePlugin(b3.plugin.Plugin):
     _callvote = dict()
     _callvoteSpecialMaplist = dict()
     _callvoteArgParse = re.compile(r"""^(?P<type>\w+)\s?(?P<args>.*)$""")
-
-    _eventHandle = dict()
 
     _callvoteMinLevel = {
         'capturelimit': 0, 'clientkick': 0, 'clientkickreason': 0, 'cyclemap': 0, 'exec': 0,
@@ -112,14 +110,9 @@ class CallvotePlugin(b3.plugin.Plugin):
                     self._adminPlugin.registerCommand(self, cmd, level, func, alias)
 
         # register the events needed
-        self.registerEvent(b3.events.EVT_CLIENT_CALLVOTE)
-        self.registerEvent(b3.events.EVT_VOTE_PASSED)
-        self.registerEvent(b3.events.EVT_VOTE_FAILED)
-
-        # map event on specific functions
-        self._eventHandle[b3.events.EVT_CLIENT_CALLVOTE] = self.onCallvote
-        self._eventHandle[b3.events.EVT_VOTE_PASSED] = self.onCallvoteFinish
-        self._eventHandle[b3.events.EVT_VOTE_FAILED] = self.onCallvoteFinish
+        self.registerEvent(b3.events.EVT_CLIENT_CALLVOTE, self.onCallvote)
+        self.registerEvent(b3.events.EVT_VOTE_PASSED, self.onCallvoteFinish)
+        self.registerEvent(b3.events.EVT_VOTE_FAILED, self.onCallvoteFinish)
 
         # notice plugin started
         self.debug('plugin started')
@@ -127,66 +120,6 @@ class CallvotePlugin(b3.plugin.Plugin):
     # ######################################################################################### #
     # ##################################### HANDLE EVENTS ##################################### #        
     # ######################################################################################### #
-
-    def onEvent(self, event):
-        """\
-        Handle intercepted events
-        """
-        if event.type in self._eventHandle.keys():
-            self._eventHandle[event.type](event)
-
-    # ######################################################################################### #
-    # ####################################### FUNCTIONS ####################################### #        
-    # ######################################################################################### #
-
-    def getCmd(self, cmd):
-        cmd = 'cmd_%s' % cmd
-        if hasattr(self, cmd):
-            func = getattr(self, cmd)
-            return func
-        return None
-
-    def xStr(self, s):
-        """\
-        Return a proper string representation of None
-        if None is given, otherwise the given string
-        """
-        return 'N/A' if not s else s
-
-    def getTimeString(self, time):
-        """\
-        Return a time string given it's value in seconds
-        """
-        if time < 60:
-            return '%d second%s' % (time, 's' if time > 1 else '')
-
-        if 60 <= time < 3600:
-            time = round(time / 60)
-            return '%d minute%s' % (time, 's' if time > 1 else '')
-
-        time = round(time / 3600)
-        return '%d hour%s' % (time, 's' if time > 1 else '')
-
-    def getLevel(self, level):
-        """\
-        Return the group name associated to the given group level
-        """
-        mingroup = None
-        groups = self.console.storage.getGroups()
-
-        for x in groups:
-
-            if x.level < level:
-                continue
-
-            if mingroup is None:
-                mingroup = x
-                continue
-
-            if x.level < mingroup.level:
-                mingroup = x
-
-        return mingroup.name
 
     def onCallvote(self, event):
         """\
@@ -209,8 +142,8 @@ class CallvotePlugin(b3.plugin.Plugin):
                 self._callvote['max_num'] += 1
 
         # only perform checks on the current callvote if there is more
-        # than 1 player being able to vote. If there is just 1 player in 
-        # non-spectator status, the vote will pass before we can actually 
+        # than 1 player being able to vote. If there is just 1 player in
+        # non-spectator status, the vote will pass before we can actually
         # compute something on our side since there is a little bit of delay
         # between what is happening on the server and what is being parsed
 
@@ -277,6 +210,59 @@ class CallvotePlugin(b3.plugin.Plugin):
         except KeyError, e:
             # something went wrong!
             self.error('could not store callvote: %s' % e)
+
+    # ######################################################################################### #
+    # ####################################### FUNCTIONS ####################################### #        
+    # ######################################################################################### #
+
+    def getCmd(self, cmd):
+        cmd = 'cmd_%s' % cmd
+        if hasattr(self, cmd):
+            func = getattr(self, cmd)
+            return func
+        return None
+
+    def xStr(self, s):
+        """\
+        Return a proper string representation of None
+        if None is given, otherwise the given string
+        """
+        return 'N/A' if not s else s
+
+    def getTimeString(self, time):
+        """\
+        Return a time string given it's value in seconds
+        """
+        if time < 60:
+            return '%d second%s' % (time, 's' if time > 1 else '')
+
+        if 60 <= time < 3600:
+            time = round(time / 60)
+            return '%d minute%s' % (time, 's' if time > 1 else '')
+
+        time = round(time / 3600)
+        return '%d hour%s' % (time, 's' if time > 1 else '')
+
+    def getLevel(self, level):
+        """\
+        Return the group name associated to the given group level
+        """
+        mingroup = None
+        groups = self.console.storage.getGroups()
+
+        for x in groups:
+
+            if x.level < level:
+                continue
+
+            if mingroup is None:
+                mingroup = x
+                continue
+
+            if x.level < mingroup.level:
+                mingroup = x
+
+        return mingroup.name
 
     # ######################################################################################### #
     # ######################################## COMMANDS ####################################### #        
