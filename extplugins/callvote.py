@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __author__ = 'Fenix'
-__version__ = '1.7'
+__version__ = '1.8'
 
 import b3
 import b3.plugin
@@ -30,18 +30,16 @@ class CallvotePlugin(b3.plugin.Plugin):
     _adminPlugin = None
 
     _callvote = dict()
-    _callvoteSpecialMaplist = dict()
-    _callvoteArgParse = re.compile(r"""^(?P<type>\w+)\s?(?P<args>.*)$""")
+    _callvote_special_maplist = dict()
 
-    _callvoteMinLevel = {
+    _callvote_min_level = {
         'capturelimit': 0, 'clientkick': 0, 'clientkickreason': 0, 'cyclemap': 0, 'exec': 0,
         'fraglimit': 0, 'kick': 0, 'map': 0, 'reload': 0, 'restart': 0, 'shuffleteams': 0,
         'swapteams': 0, 'timelimit': 0, 'g_bluewaverespawndelay': 0, 'g_bombdefusetime': 0,
         'g_bombexplodetime': 0, 'g_capturescoretime': 0, 'g_friendlyfire': 0, 'g_followstrict': 0,
         'g_gametype': 0, 'g_gear': 0, 'g_matchmode': 0, 'g_maxrounds': 0, 'g_nextmap': 0,
         'g_redwaverespawndelay': 0, 'g_respawndelay': 0, 'g_roundtime': 0, 'g_timeouts': 0,
-        'g_timeoutlength': 0, 'g_swaproles': 0, 'g_waverespawns': 0,
-    }
+        'g_timeoutlength': 0, 'g_swaproles': 0, 'g_waverespawns': 0}
 
     _sql = dict(
         q1="""INSERT INTO `callvote` VALUES (NULL, '%s', '%s', '%s', '%d', '%d', '%d', '%d')""",
@@ -51,8 +49,13 @@ class CallvotePlugin(b3.plugin.Plugin):
                      INNER JOIN `clients` AS `c1`
                      ON `c1`.`id` = `c2`.`client_id`
                      ORDER BY `time_add` DESC
-                     LIMIT 0 , 1""",
-    )
+                     LIMIT 0 , 1""")
+
+    ####################################################################################################################
+    ##                                                                                                                ##
+    ##   STARTUP                                                                                                      ##
+    ##                                                                                                                ##
+    ####################################################################################################################
 
     def __init__(self, console, config=None):
         """\
@@ -70,19 +73,19 @@ class CallvotePlugin(b3.plugin.Plugin):
         for s in self.config.options('callvoteminlevel'):
 
             try:
-                self._callvoteMinLevel[s] = self.console.getGroupLevel(self.config.get('callvoteminlevel', s))
-                self.debug('minimum required level for [%s] set to: %d' % (s, self._callvoteMinLevel[s]))
+                self._callvote_min_level[s] = self.console.getGroupLevel(self.config.get('callvoteminlevel', s))
+                self.debug('minimum required level for %s set to: %d' % (s, self._callvote_min_level[s]))
             except KeyError, e:
                 self.error('invalid group level in settings/%s config value: %s' % (s, e))
-                self.debug('using default value (%s) for settings/%s' % (s, self._callvoteMinLevel[s]))
+                self.debug('using default value (%s) for settings/%s' % (s, self._callvote_min_level[s]))
 
         for s in self.config.options('callvotespecialmaplist'):
 
             try:
                 s = s.lower()  # lowercase the map name to avoid false positives
-                self._callvoteSpecialMaplist[s] = self.console.getGroupLevel(self.config.get('callvotespecialmaplist', s))
-                self.debug('minimum required level to vote map [%s] set to: %d' % (s, self._callvoteSpecialMaplist[s]))
-            except ValueError, e:
+                self._callvote_special_maplist[s] = self.console.getGroupLevel(self.config.get('callvotespecialmaplist', s))
+                self.debug('minimum required level to vote map %s set to: %d' % (s, self._callvote_special_maplist[s]))
+            except KeyError, e:
                 # can't load a default value here since the mapname is dynamic
                 self.error('invalid group level in settings/%s config value: %s' % (s, e))
 
@@ -117,23 +120,26 @@ class CallvotePlugin(b3.plugin.Plugin):
         # notice plugin started
         self.debug('plugin started')
 
-    # ######################################################################################### #
-    # ##################################### HANDLE EVENTS ##################################### #        
-    # ######################################################################################### #
+    ####################################################################################################################
+    ##                                                                                                                ##
+    ##   EVENTS                                                                                                       ##
+    ##                                                                                                                ##
+    ####################################################################################################################
 
     def onCallvote(self, event):
         """\
         Handle EVT_CLIENT_CALLVOTE
         """
-        match = self._callvoteArgParse.match(event.data)
-        if not match:
+        r = re.compile(r'''^(?P<type>\w+)\s?(?P<args>.*)$''')
+        m = r.match(event.data)
+        if not m:
             self.warning('could not parse callvote data: %s' % event.data)
             return
 
         self._callvote = dict()
         self._callvote['client'] = event.client
-        self._callvote['type'] = match.group('type').lower()
-        self._callvote['args'] = match.group('args')
+        self._callvote['type'] = m.group('type').lower()
+        self._callvote['args'] = m.group('args')
         self._callvote['time'] = self.console.time()
         self._callvote['max_num'] = 0
 
@@ -150,11 +156,11 @@ class CallvotePlugin(b3.plugin.Plugin):
         if not self._callvote['max_num'] > 1:
             return
 
-        try:
+        cl = self._callvote['client']
+        tp = self._callvote['type']
+        lv = self._callvote_min_level[tp]
 
-            cl = self._callvote['client']
-            tp = self._callvote['type']
-            lv = self._callvoteMinLevel[tp]
+        try:
 
             # checking required user level
             if cl.maxLevel < lv:
@@ -168,8 +174,8 @@ class CallvotePlugin(b3.plugin.Plugin):
             # then the one specified in the config file
             if tp == 'map' or tp == 'g_nextmap':
                 mapname = self._callvote['args'].lower()
-                if mapname in self._callvoteSpecialMaplist.keys():
-                    lv = self._callvoteSpecialMaplist[mapname]
+                if mapname in self._callvote_special_maplist.keys():
+                    lv = self._callvote_special_maplist[mapname]
                     if cl.maxLevel < lv:
                         self.console.write('veto')
                         self.debug('aborting [callvote %s] command: no sufficient level for client [@%s]' % (tp, cl.id))
@@ -201,19 +207,19 @@ class CallvotePlugin(b3.plugin.Plugin):
                 self._callvote['max_num'] += 1
 
         try:
-
             self.console.storage.query(self._sql['q1'] % (self._callvote['client'].id, self._callvote['type'],
                                                           self._callvote['args'] if self._callvote['args'] else None,
                                                           self._callvote['max_num'], self._callvote['num_yes'],
                                                           self._callvote['num_no'], self._callvote['time']))
-
         except KeyError, e:
             # something went wrong!
             self.error('could not store callvote: %s' % e)
 
-    # ######################################################################################### #
-    # ####################################### FUNCTIONS ####################################### #        
-    # ######################################################################################### #
+    ####################################################################################################################
+    ##                                                                                                                ##
+    ##   FUNCTIONS                                                                                                    ##
+    ##                                                                                                                ##
+    ####################################################################################################################
 
     def getCmd(self, cmd):
         cmd = 'cmd_%s' % cmd
@@ -264,9 +270,11 @@ class CallvotePlugin(b3.plugin.Plugin):
 
         return mingroup.name
 
-    # ######################################################################################### #
-    # ######################################## COMMANDS ####################################### #        
-    # ######################################################################################### # 
+    ####################################################################################################################
+    ##                                                                                                                ##
+    ##   COMMANDS                                                                                                     ##
+    ##                                                                                                                ##
+    ####################################################################################################################
 
     def cmd_veto(self, data, client, cmd=None):
         """\
