@@ -70,21 +70,21 @@ class CallvotePlugin(b3.plugin.Plugin):
         for s in self.config.options('callvoteminlevel'):
 
             try:
-                self._callvoteMinLevel[s] = self.config.getint('callvoteminlevel', s)
+                self._callvoteMinLevel[s] = self.console.getGroupLevel(self.config.get('callvoteminlevel', s))
                 self.debug('minimum required level for [%s] set to: %d' % (s, self._callvoteMinLevel[s]))
-            except ValueError, e:
-                self.error('could not load settings/%s config value: %s' % (s, e))
+            except KeyError, e:
+                self.error('invalid group level in settings/%s config value: %s' % (s, e))
                 self.debug('using default value (%s) for settings/%s' % (s, self._callvoteMinLevel[s]))
 
         for s in self.config.options('callvotespecialmaplist'):
 
             try:
                 s = s.lower()  # lowercase the map name to avoid false positives
-                self._callvoteSpecialMaplist[s] = self.config.getint('callvotespecialmaplist', s)
+                self._callvoteSpecialMaplist[s] = self.console.getGroupLevel(self.config.get('callvotespecialmaplist', s))
                 self.debug('minimum required level to vote map [%s] set to: %d' % (s, self._callvoteSpecialMaplist[s]))
             except ValueError, e:
-                # can0t load a default value here since the mapnam is dynamic
-                self.error('could not load settings/%s config value: %s' % (s, e))
+                # can't load a default value here since the mapname is dynamic
+                self.error('invalid group level in settings/%s config value: %s' % (s, e))
 
     def onStartup(self):
         """\
