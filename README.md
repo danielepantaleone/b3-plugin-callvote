@@ -20,7 +20,7 @@ Because of this we will perform checks on a callvote being issued on the server 
 ### Installing the plugin
 
 * Copy **callvote.py** into **b3/extplugins**
-* Copy **callvote.xml** into **b3/extplugins/conf**
+* Copy **plugin_callvote.ini** into **b3/extplugins/conf**
 * Import **callvote.sql** into your b3 database
 * Load the plugin in your **b3.xml** configuration file
 
@@ -31,10 +31,10 @@ Because of this we will perform checks on a callvote being issued on the server 
 
 ## In-game user guide
 
-* **!lastvote** *Display the last callvote issued on the server*
-* **!veto** *Cancel the current callvote*
+* **!lastvote** - *display the last callvote issued on the server*
+* **!veto** - *cancel the current callvote*
 
 ## Support
 
-For support regarding this very plugin you can find me on IRC on **#urbanterror / #goreclan** @ **Quakenet**<br>
+For support regarding this very plugin you can find me on IRC on **#goreclan** @ **Quakenet**<br>
 For support regarding Big Brother Bot you may ask for help on the official website: http://www.bigbrotherbot.net
