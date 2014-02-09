@@ -43,13 +43,8 @@ class CallvotePlugin(b3.plugin.Plugin):
 
     _sql = dict(
         q1="""INSERT INTO `callvote` VALUES (NULL, '%s', '%s', '%s', '%d', '%d', '%d', '%d')""",
-        q2="""SELECT `c1`.`name`,
-                     `c2`.*
-                     FROM  `callvote` AS `c2`
-                     INNER JOIN `clients` AS `c1`
-                     ON `c1`.`id` = `c2`.`client_id`
-                     ORDER BY `time_add` DESC
-                     LIMIT 0 , 1""")
+        q2="""SELECT `c1`.`name`, `c2`.* FROM  `callvote` AS `c2` INNER JOIN `clients` AS `c1`"""
+           """ON `c1`.`id` = `c2`.`client_id` ORDER BY `time_add` DESC LIMIT 0 , 1""")
 
     ####################################################################################################################
     ##                                                                                                                ##
@@ -82,8 +77,9 @@ class CallvotePlugin(b3.plugin.Plugin):
         for s in self.config.options('callvotespecialmaplist'):
 
             try:
-                s = s.lower()  # lowercase the map name to avoid false positives
-                self._callvote_special_maplist[s] = self.console.getGroupLevel(self.config.get('callvotespecialmaplist', s))
+                s = s.lower()  # lowercase the map name
+                level = self.config.get('callvotespecialmaplist', s)
+                self._callvote_special_maplist[s] = self.console.getGroupLevel(level)
                 self.debug('minimum required level to vote map %s set to: %d' % (s, self._callvote_special_maplist[s]))
             except KeyError, e:
                 # can't load a default value here since the mapname is dynamic
