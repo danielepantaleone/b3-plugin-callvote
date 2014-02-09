@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 __author__ = 'Fenix'
-__version__ = '1.8'
+__version__ = '1.9'
 
 import b3
 import b3.plugin
@@ -109,9 +109,9 @@ class CallvotePlugin(b3.plugin.Plugin):
                     self._adminPlugin.registerCommand(self, cmd, level, func, alias)
 
         # register the events needed
-        self.registerEvent(b3.events.EVT_CLIENT_CALLVOTE, self.onCallvote)
-        self.registerEvent(b3.events.EVT_VOTE_PASSED, self.onCallvoteFinish)
-        self.registerEvent(b3.events.EVT_VOTE_FAILED, self.onCallvoteFinish)
+        self.registerEvent(self.console.getEventID('EVT_CLIENT_CALLVOTE'), self.onCallvote)
+        self.registerEvent(self.console.getEventID('EVT_VOTE_PASSED'), self.onCallvoteFinish)
+        self.registerEvent(self.console.getEventID('EVT_VOTE_FAILED'), self.onCallvoteFinish)
 
         # notice plugin started
         self.debug('plugin started')
