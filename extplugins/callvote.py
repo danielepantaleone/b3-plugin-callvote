@@ -124,10 +124,14 @@ class CallvotePlugin(b3.plugin.Plugin):
                 if func:
                     self._adminPlugin.registerCommand(self, cmd, level, func, alias)
 
-        # register the events needed
-        self.registerEvent(self.console.getEventID('EVT_CLIENT_CALLVOTE'), self.onCallvote)
-        self.registerEvent(self.console.getEventID('EVT_VOTE_PASSED'), self.onCallvoteFinish)
-        self.registerEvent(self.console.getEventID('EVT_VOTE_FAILED'), self.onCallvoteFinish)
+        try:
+            self.registerEvent(self.console.getEventID('EVT_CLIENT_CALLVOTE'), self.onCallvote)
+            self.registerEvent(self.console.getEventID('EVT_VOTE_PASSED'), self.onCallvoteFinish)
+            self.registerEvent(self.console.getEventID('EVT_VOTE_FAILED'), self.onCallvoteFinish)
+        except TypeError:
+            self.registerEvent(self.console.getEventID('EVT_CLIENT_CALLVOTE'))
+            self.registerEvent(self.console.getEventID('EVT_VOTE_PASSED'))
+            self.registerEvent(self.console.getEventID('EVT_VOTE_FAILED'))
 
         # notice plugin started
         self.debug('plugin started')
@@ -137,6 +141,17 @@ class CallvotePlugin(b3.plugin.Plugin):
     ##   EVENTS                                                                                                       ##
     ##                                                                                                                ##
     ####################################################################################################################
+
+    def onEvent(self, event):
+        """\
+        Old event system dispatcher
+        """
+        if event.type == self.console.getEventID('EVT_CLIENT_CALLVOTE'):
+            self.onCallvote(event)
+        elif event.type == self.console.getEventID('EVT_VOTE_PASSED'):
+            self.onCallvoteFinish(event)
+        elif event.type == self.console.getEventID('EVT_VOTE_FAILED'):
+            self.onCallvoteFinish(event)
 
     def onCallvote(self, event):
         """\
