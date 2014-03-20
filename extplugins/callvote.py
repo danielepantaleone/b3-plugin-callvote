@@ -61,6 +61,12 @@ class CallvotePlugin(b3.plugin.Plugin):
             self.critical("unsupported game : %s" % self.console.gameName)
             raise SystemExit(220)
 
+        # get the admin plugin
+        self._adminPlugin = self.console.getPlugin('admin')
+        if not self._adminPlugin:
+            self.critical('could not start without admin plugin')
+            raise SystemExit(220)
+
     def onLoadConfig(self):
         """\
         Load plugin configuration
@@ -89,12 +95,6 @@ class CallvotePlugin(b3.plugin.Plugin):
         """\
         Initialize plugin settings
         """
-        # get the admin plugin
-        self._adminPlugin = self.console.getPlugin('admin')
-        if not self._adminPlugin:
-            self.error('could not find admin plugin')
-            return False
-
         # create database tables if needed
         tables = self.console.storage.getTables()
         if not 'callvote' in tables:
