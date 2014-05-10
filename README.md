@@ -1,40 +1,58 @@
-Callvote Plugin for BigBrotherBot
+Callvote Plugin for BigBrotherBot [![BigBrotherBot](http://i.imgur.com/7sljo4G.png)][B3]
 =================================
 
-## Description
+Description
+-----------
 
-This plugin provides advanced features related to the Urban Terror 4.2 callvotes.<br />
-With this plugin is possible to specify which b3 group has access to specific callvotes.<br />
-Since there is a bit of delay between a /callvote command being issued on the server and the b3 generating the corresponding event, is not possible to handle everything
+A [BigBrotherBot][B3] plugin which provides advanced features related to the Urban Terror 4.2 callvotes.
+With this plugin is possible to specify which B3 group has access to specific callvotes.
+Moreover there is the possibility to specify a *special maps list* so that only a certain group of users can
+issue callvote for map/nextmap if the level is in the *special maps list*.
+Since there is a bit of delay between a /callvote command being issued on the server and the b3 generating the
+corresponding event, is not possible to handle everything.
 As an example think about this situation:
 
     Bob  - Team Red
     Tom  - Team Spectator
     Lisa - Team Spectator
  
-If Bob issue a /callvote command, the callvote will end as soon as the countdown starts since he's the only one able to do /vote. 
-Because of this we will perform checks on a callvote being issued on the server just if there is more than 1 player being able to vote.
+If Bob issue a **/callvote** command, the callvote will end as soon as the countdown starts since he's the only
+active player. Because of this we will perform checks on a callvote being issued on the server just if there is
+more than 1 player being able to vote.
 
-## How to install
+Download
+--------
 
-### Installing the plugin
+Latest version available [here](https://github.com/FenixXx/b3-plugin-callvote/archive/master.zip).
 
-* Copy **callvote.py** into **b3/extplugins**
-* Copy **plugin_callvote.ini** into **b3/extplugins/conf**
-* Import **callvote.sql** into your b3 database
-* Load the plugin in your **b3.xml** configuration file
+Installation
+------------
 
-### Requirements
+* copy the `callvote.py` file into `b3/extplugins`
+* copy the `plugin_callvote.ini` file in `b3/extplugins/conf`
+* add to the `plugins` section of your `b3.xml` config file:
 
-* Urban Terror 4.2 server
-* iourt42 parser (at least v1.18)
+  ```xml
+  <plugin name="callvote" config="@b3/extplugins/conf/plugin_callvote.ini" />
+  ```
+Requirements
+------------
 
-## In-game user guide
+* Urban Terror 4.2 server [g_modversion >= 4.2.015]
+* B3 [version >= 1.10dev]
 
-* **!lastvote** - *display the last callvote issued on the server*
-* **!veto** - *cancel the current callvote*
+In-game user guide
+------------------
 
-## Support
+* **!lastvote** - `display the last callvote issued on the server`
+* **!veto** - `cancel the current callvote`
 
-For support regarding this very plugin you can find me on IRC on **#goreclan** @ **Quakenet**<br>
-For support regarding Big Brother Bot you may ask for help on the official website: http://www.bigbrotherbot.net
+Support
+-------
+
+If you have found a bug or have a suggestion for this plugin, please report it on the [B3 forums][Support].
+
+[B3]: http://www.bigbrotherbot.net/ "BigBrotherBot (B3)"
+[Support]: http://forum.bigbrotherbot.net/plugins-by-fenix/callvote-plugin/ "Support topic on the B3 forums"
+
+[![Build Status](https://travis-ci.org/FenixXx/b3-plugin-callvote.svg?branch=master)](https://travis-ci.org/FenixXx/b3-plugin-callvote)
