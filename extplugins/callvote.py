@@ -125,7 +125,7 @@ class CallvotePlugin(b3.plugin.Plugin):
                     self.error('invalid group level in callvoteminlevel/%s config value: %s' % (s, e))
                     self.debug('using default value (%s) for callvoteminlevel/%s' % (s, self.callvoteminlevel[s]))
 
-        except:
+        except NoSectionError:
             # all the callvote type can be issued by everyone
             self.warning('section "callvoteminlevel" missing in configuration file')
 
