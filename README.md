@@ -20,6 +20,10 @@ If Bob issue a **/callvote** command, the callvote will end as soon as the count
 active player. Because of this we will perform checks on a callvote being issued on the server just if there is
 more than 1 player being able to vote.
 
+******
+*NOTE: since B3 v1.10.1 beta this plugin has been included in the standard plugins set, thus all patches and updates will be performed in the official B3 repository.*
+******
+
 Download
 --------
 
